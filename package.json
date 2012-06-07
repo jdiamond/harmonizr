@@ -1,0 +1,41 @@
+{
+  "name": "harmonizr",
+  "version": "0.1.0",
+  "description": "bring tomorrow's Harmony to today's JavaScript",
+  "keywords": [
+    "javascript",
+    "harmony",
+    "ecmascript",
+    "transpiler"
+  ],
+  "homepage": "https://github.com/jdiamond/harmonizr",
+  "bugs": {
+    "url": "https://github.com/jdiamond/harmonizr/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jdiamond/harmonizr"
+  },
+  "license": "MIT",
+  "author": "Jason Diamond <jason@diamond.name>",
+  "main": "./lib/harmonizr.js",
+  "bin": {
+    "harmonizr": "./bin/harmonizr"
+  },
+  "scripts": {
+    "test": "node node_modules/mocha/bin/mocha"
+  },
+  "engines": {
+    "node": "*"
+  },
+  "dependencies": {
+    "commander": "*"
+  },
+  "devDependencies": {
+    "mocha": "*",
+    "should": "*",
+    "chai": "*",
+    "cover": "*",
+    "jshint": "*"
+  }
+}

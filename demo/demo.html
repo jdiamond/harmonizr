@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>harmonizr demo</title>
+        <link rel="stylesheet" href="lib/bootstrap.css">
+        <link rel="stylesheet" href="lib/codemirror.css">
+        <link rel="stylesheet" href="demo.css">
+    </head>
+    <body>
+        <div class="container">
+            <h1>harmonizr demo</h1>
+
+            <div id="editor"></div>
+
+            <form id="options" class="form-vertical">
+                <span title="Module format style">
+                    Transpile to:
+                    <select id="styles">
+                        <option value="amd">AMD</option>
+                        <option value="node">Node.js</option>
+                        <option value="revealing">Module Pattern</option>
+                    </select>
+                </span>
+                <span title="Assumed module name">
+                    Module:
+                    <input id="module" type="text">
+                </span>
+                <span title="Comma-separated list of relative module names">
+                    Relatives:
+                    <input id="relatives" type="text">
+                </span>
+            </form>
+
+            <div id="error" class="alert alert-error" style="display: none;"></div>
+
+            <div id="result"></div>
+        </div>
+
+        <script type="example">
+module foo {
+    import bar from baz;
+    export function quux() {
+        return bar() + 1;
+    }
+}
+        </script>
+
+        <script src="lib/require.js" data-main="demo"></script>
+    </body>
+</html>

@@ -1,0 +1,55 @@
+#!/usr/bin/env node
+
+var fs = require('fs');
+var program = require('commander');
+var harmonizr = require('../');
+
+program
+    .usage('[options] input')
+    .option('--output <path>', 'output path')
+    .option('--style <style>', 'module style (amd, node, or revealing)')
+    .option('--amd', 'short for --module amd')
+    .option('--node', 'short for --module node')
+    .option('--revealing', 'short for --module revealing')
+    .option('--module <name>', 'implied module name')
+    .option('--relatives <modules>', 'relative modules (used by node)', list)
+    .parse(process.argv);
+
+var files = program.args;
+
+if (files.length) {
+    files.forEach(harmonize);
+} else {
+    process.stdout.write(program.helpInformation());
+}
+
+function harmonize(path) {
+    fs.readFile(path, 'utf8', function(err, src) {
+        if (err) {
+            process.stderr.write(err.message);
+        } else {
+            program.style = program.amd       ? 'amd'       :
+                            program.node      ? 'node'      :
+                            program.revealing ? 'revealing' :
+                            program.style;
+
+            var options = {
+                style: program.style || 'node',
+                module: program.module,
+                relatives: program.relatives
+            };
+
+            src = harmonizr.harmonize(src, options);
+
+            if (program.output) {
+                fs.writeFileSync(program.output, src);
+            } else {
+                process.stdout.write(src);
+            }
+        }
+    });
+}
+
+function list(val) {
+    return val.split(',');
+}

@@ -1,0 +1,20 @@
+.CodeMirror {
+    border: 1px solid #666;
+}
+
+h1, #editor, #error, #result {
+    margin-top: 16px;
+    margin-bottom: 16px;
+}
+
+.currentLine {
+    background-color: #e8f2ff !important;
+}
+
+#options span {
+    margin-right: 16px;
+}
+
+#options input, select {
+    margin-bottom: auto;
+}
