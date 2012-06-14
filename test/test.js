@@ -138,6 +138,28 @@ describe('harmonizr', function() {
         harmonize(src, expected, { style: 'revealing' });
     });
 
+    it('can detect indentation when the first line in a module is blank', function() {
+        var src      = 'module m1 {\n' +
+                       '\n' +
+                       '    import a from m2;\n' +
+                       '    import { b, c: d } from m3;\n' +
+                       '    export var e;\n' +
+                       '    export function f() {}\n' +
+                       '}';
+        var expected = 'var m1 = function() {\n' +
+                       '\n' +
+                       '    var a = m2.a;\n' +
+                       '    var b = m3.b, c = m3.d;\n' +
+                       '    var e;\n' +
+                       '    function f() {}\n' +
+                       '    return {\n' +
+                       '        e: e,\n' +
+                       '        f: f\n' +
+                       '    };\n' +
+                       '}();';
+        harmonize(src, expected, { style: 'revealing' });
+    });
+
     it('can assume all the code is wrapped in a module declaration', function() {
         var src      = 'import a from m2;\n' +
                        'import { b, c: d } from m3;\n' +

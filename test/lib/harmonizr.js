@@ -250,19 +250,20 @@ function splice(str, index, howMany, insert) {
 }
 
 function detectIndent(mod, lines) {
-    var moduleBodyStartLine = mod.body.loc.start.line - 1;
-    var line = lines[moduleBodyStartLine + 1];
-    if (line) {
-        var m = line.match(/^(\s*)\S/);
+    var i = 0;
+    while (i < lines.length) {
+        var line = lines[i];
+        var m = line.match(/^(\s+)\S/);
         if (m) {
             return m[1];
         }
+        i++;
     }
     return '';
 }
 
-return {
-harmonize: harmonize,
-moduleStyles: moduleStyles
-};
+    return {
+        harmonize: harmonize,
+        moduleStyles: moduleStyles
+    };
 }();
