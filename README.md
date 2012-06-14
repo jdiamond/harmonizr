@@ -55,9 +55,13 @@ this:
 
 ## Code
 
-The actual source code is in the src directory. The Makefile
-transpiles that into a Node.js-style module in lib, AMD-style in demo,
-and Revealing Module Pattern-style in test.
+Harmonizr uses the excellent [Esprima](http://esprima.org/) parser. A
+copy of Esprima from its "harmony" branch is embedded into Harmonizr in
+the lib directory.
+
+The actual source code for Harmonizr is in the src directory. The
+Makefile transpiles that into a Node.js-style module in lib, AMD-style
+in demo, and Revealing Module Pattern-style in test.
 
 Harmonizr transpiles itself. Since Node.js doesn't support the newer
 syntax harmonizr.js uses in the src directory, it loads the
