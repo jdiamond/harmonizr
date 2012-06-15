@@ -5,6 +5,7 @@ import { parse, Syntax } from esprima;
 export function harmonize(src, options) {
     options = options || {};
     src = processShorthands(src, options);
+    src = processMethods(src, options);
     return processModules(src, options, moduleStyles[options.style]);
 }
 
@@ -31,6 +32,34 @@ function processShorthands(src, options) {
             col,
             0, // Delete nothing.
             ': ' + prop.value.name);
+    }
+
+    return lines.join('\n');
+}
+
+function processMethods(src, options) {
+    var ast = parse(src, { loc: true });
+
+    var methods = [];
+
+    traverse(ast, function(node) {
+        if (node.type === Syntax.Property && node.method) {
+            methods.push(node);
+        }
+    });
+
+    var lines = src.split('\n');
+
+    for (var i = methods.length - 1; i >= 0; i--) {
+        var prop = methods[i];
+        var line = prop.key.loc.end.line - 1;
+        var col = prop.key.loc.end.column;
+
+        lines[line] = splice(
+            lines[line],
+            col,
+            0, // Delete nothing.
+            ': function');
     }
 
     return lines.join('\n');
@@ -137,7 +166,7 @@ function processModules(src, options, style) {
 
 export var moduleStyles = {
     amd: {
-        startModule: function(mod, imps, options) {
+        startModule(mod, imps, options) {
             var header = 'define(';
             if (imps.length) {
                 header += '[\'' + imps.map(function(imp) { return modulePath(importFrom(imp), options); }).join('\', \'') + '\'], ';
@@ -149,14 +178,14 @@ export var moduleStyles = {
             header += ') {';
             return header;
         },
-        importDeclaration: function(mod, imp, options) {
+        importDeclaration(mod, imp, options) {
             return 'var ' + imp.specifiers.map(function(spec) {
                 var id = spec.type === Syntax.Identifier ? spec.name : spec.id.name;
                 var from = spec.from ? joinPath(spec.from) : id;
                 return id + ' = ' + importFrom(imp) + '.' + from;
             }).join(', ') + ';';
         },
-        exports: function(mod, exps, options) {
+        exports(mod, exps, options) {
             var indent = options.indent;
             var ret = indent;
             ret += 'return {';
@@ -172,16 +201,16 @@ export var moduleStyles = {
             ret += '};\n';
             return ret;
         },
-        endModule: function(mod, options) {
+        endModule(mod, options) {
             return '});';
         }
     },
 
     node: {
-        startModule: function(mod, imps, options) {
+        startModule(mod, imps, options) {
             return '';
         },
-        importDeclaration: function(mod, imp, options) {
+        importDeclaration(mod, imp, options) {
             return 'var ' + importFrom(imp) +
                    ' = require(\'' + modulePath(importFrom(imp), options) + '\'), ' +
                    imp.specifiers.map(function(spec) {
@@ -190,7 +219,7 @@ export var moduleStyles = {
                        return id + ' = ' + importFrom(imp) + '.' + from;
                    }).join(', ') + ';';
         },
-        exports: function(mod, exps, options) {
+        exports(mod, exps, options) {
             var indent = options.indent;
             var returns = indent + 'module.exports = {';
             returns += '\n' + exps.map(function(exp) {
@@ -201,23 +230,23 @@ export var moduleStyles = {
             returns += '};\n';
             return returns;
         },
-        endModule: function(mod, options) {
+        endModule(mod, options) {
             return '';
         }
     },
 
     revealing: {
-        startModule: function(mod, imps, options) {
+        startModule(mod, imps, options) {
             return 'var ' + mod.id.name + ' = function() {';
         },
-        importDeclaration: function(mod, imp, options) {
+        importDeclaration(mod, imp, options) {
             return 'var ' + imp.specifiers.map(function(spec) {
                 var id = spec.type === Syntax.Identifier ? spec.name : spec.id.name;
                 var from = spec.from ? joinPath(spec.from) : id;
                 return id + ' = ' + importFrom(imp) + '.' + from;
             }).join(', ') + ';';
         },
-        exports: function(mod, exps, options) {
+        exports(mod, exps, options) {
             var indent = options.indent;
             var returns = indent + 'return {';
             if (exps.length) {
@@ -230,7 +259,7 @@ export var moduleStyles = {
             returns += '};\n';
             return returns;
         },
-        endModule: function(mod, options) {
+        endModule(mod, options) {
             return '}();';
         }
     }

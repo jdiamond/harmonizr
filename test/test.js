@@ -198,6 +198,16 @@ describe('harmonizr', function() {
         harmonize(src, expected);
     });
 
+    it('supports method definitions', function() {
+        var src      = 'var o = {\n' +
+                       '    m() {}\n' +
+                       '};';
+        var expected = 'var o = {\n' +
+                       '    m: function() {}\n' +
+                       '};';
+        harmonize(src, expected);
+    });
+
 });
 
 function harmonize(src, expected, options) {
