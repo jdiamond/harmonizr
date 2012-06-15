@@ -23,8 +23,8 @@ function processShorthands(src, options) {
 
     for (var i = shorthands.length - 1; i >= 0; i--) {
         var prop = shorthands[i];
-        var line = prop.value.loc.line - 1;
-        var col = prop.value.loc.column;
+        var line = prop.value.loc.end.line - 1;
+        var col = prop.value.loc.end.column;
 
         lines[line] = splice(
             lines[line],
