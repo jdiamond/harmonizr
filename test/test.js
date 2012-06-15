@@ -178,6 +178,26 @@ describe('harmonizr', function() {
         harmonize(src, expected, { style: 'revealing', module: 'm1' });
     });
 
+    it('converts shorthand properties into longhand properties', function() {
+        var src      = 'var o = {\n' +
+                       '    a,\n' +
+                       '    b: c,\n' +
+                       '    d\n' +
+                       '};';
+        var expected = 'var o = {\n' +
+                       '    a: a,\n' +
+                       '    b: c,\n' +
+                       '    d: d\n' +
+                       '};';
+        harmonize(src, expected);
+    });
+
+    it('works when the shorthand properties are on the same line', function() {
+        var src      = 'var o = { a, b: c, d };';
+        var expected = 'var o = { a: a, b: c, d: d };';
+        harmonize(src, expected);
+    });
+
 });
 
 function harmonize(src, expected, options) {
