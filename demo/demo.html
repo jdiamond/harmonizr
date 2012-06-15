@@ -38,11 +38,27 @@
         </div>
 
         <script type="example">
+// Module definition
 module foo {
+
+    // Import declaration
     import bar from baz;
+
+    // Export declaration
     export function quux() {
         return bar() + 1;
     }
+
+    var value = 'hello';
+
+    var obj = {
+        // Shorthand property
+        value,
+
+        // Method definition
+        method(arg1, arg2) { return arg1 + arg2; }
+    };
+
 }
         </script>
 
