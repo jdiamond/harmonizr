@@ -5,6 +5,8 @@ A "transpiler" that brings tomorrow's Harmony to today's JavaScript.
 ## Features:
 
   - Harmony modules to AMD, Node.js, or Revealing Module Pattern
+  - Shorthand properties
+  - Method definitions
   - Maintains line numbers
 
 ## Demo
