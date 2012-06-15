@@ -208,6 +208,26 @@ describe('harmonizr', function() {
         harmonize(src, expected);
     });
 
+    it('supports concise methods', function() {
+        var src      = 'var o = {\n' +
+                       '    a() 42\n' +
+                       '};';
+        var expected = 'var o = {\n' +
+                       '    a: function() { return 42; }\n' +
+                       '};';
+        harmonize(src, expected);
+    });
+
+    it('does not put return in front of concise assignments (or should it?)', function() {
+        var src      = 'var o = {\n' +
+                       '    a(b) c = b\n' +
+                       '};';
+        var expected = 'var o = {\n' +
+                       '    a: function(b) { c = b; }\n' +
+                       '};';
+        harmonize(src, expected);
+    });
+
 });
 
 function harmonize(src, expected, options) {

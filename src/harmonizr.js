@@ -55,6 +55,32 @@ function processMethods(src, options) {
         var line = prop.key.loc.end.line - 1;
         var col = prop.key.loc.end.column;
 
+        if (prop.value.body.type !== Syntax.BlockStatement) {
+            // It's a concise method definition.
+
+            // Add the end of the function body first.
+            var bodyEndLine = prop.value.loc.end.line - 1;
+            var bodyEndCol = prop.value.loc.end.column;
+            lines[bodyEndLine] = splice(
+                lines[bodyEndLine],
+                bodyEndCol,
+                0,
+                '; }');
+
+            // Now add the beginning.
+            var prefix = '{ ';
+            if (prop.value.body.type !== Syntax.AssignmentExpression) {
+                prefix += 'return ';
+            }
+            var bodyStartLine = prop.value.loc.start.line - 1;
+            var bodyStartCol = prop.value.loc.start.column;
+            lines[bodyStartLine] = splice(
+                lines[bodyStartLine],
+                bodyStartCol,
+                0,
+                prefix);
+        }
+
         lines[line] = splice(
             lines[line],
             col,
