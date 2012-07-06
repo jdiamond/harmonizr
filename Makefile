@@ -15,7 +15,7 @@ test/lib/harmonizr.js: src/harmonizr.js bin/harmonizr
 	node bin/harmonizr --revealing src/harmonizr.js --output test/lib/harmonizr.js
 
 hint: lib/harmonizr.js PHONY
-	node node_modules/jshint/bin/hint lib/harmonizr.js bin/harmonizr demo test
+	node node_modules/jshint/bin/hint lib/harmonizr.js bin/harmonizr demo/*.js test/test.js
 
 test: PHONY
 	node node_modules/mocha/bin/mocha
