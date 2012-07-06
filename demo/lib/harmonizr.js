@@ -116,8 +116,12 @@ function processModules(src, options, style) {
         var imps = [];
 
         traverse(mod, function(node) {
-            if (node.type === Syntax.ModuleDeclaration && node !== mod) {
-                return false;
+            if (node.type === Syntax.ModuleDeclaration) {
+                if (node.id && node.from && node.from.type === 'Path') {
+                    imps.push(node);
+                } else if (node !== mod) {
+                    return false;
+                }
             } else if (node.type === Syntax.ImportDeclaration &&
                        node.specifiers[0].type !== Syntax.Glob) {
                 imps.push(node);
@@ -152,7 +156,9 @@ function processModules(src, options, style) {
                 lines[importStartLine],
                 importStartColumn,
                 importEndColumn - importStartColumn,
-                style.importDeclaration(mod, imp, options));
+                imp.type === Syntax.ModuleDeclaration ?
+                    style.importModuleDeclaration(mod, imp, options) :
+                    style.importDeclaration(mod, imp, options));
         });
 
         var exps = [];
@@ -204,6 +210,9 @@ var moduleStyles = {
             header += ') {';
             return header;
         },
+        importModuleDeclaration: function(mod, imp, options) {
+            return 'var ' + imp.id.name + ' = ' + imp.from.body[0].name + ';';
+        },
         importDeclaration: function(mod, imp, options) {
             return 'var ' + imp.specifiers.map(function(spec) {
                 var id = spec.type === Syntax.Identifier ? spec.name : spec.id.name;
@@ -236,6 +245,9 @@ var moduleStyles = {
         startModule: function(mod, imps, options) {
             return '';
         },
+        importModuleDeclaration: function(mod, imp, options) {
+            return 'var ' + imp.id.name + ' = require(\'' + imp.from.body[0].name + '\');';
+        },
         importDeclaration: function(mod, imp, options) {
             return 'var ' + importFrom(imp) +
                    ' = require(\'' + modulePath(importFrom(imp), options) + '\'), ' +
@@ -264,6 +276,9 @@ var moduleStyles = {
     revealing: {
         startModule: function(mod, imps, options) {
             return 'var ' + mod.id.name + ' = function() {';
+        },
+        importModuleDeclaration: function(mod, imp, options) {
+            return 'var ' + imp.id.name + ' = ' + imp.from.body[0].name + ';';
         },
         importDeclaration: function(mod, imp, options) {
             return 'var ' + imp.specifiers.map(function(spec) {

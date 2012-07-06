@@ -39,17 +39,22 @@
 
         <script type="example">
 // Module definition
-module foo {
+module myModule {
 
     // Import declaration
-    import bar from baz;
+    import { otherVar, otherFunction } from otherModule;
 
-    // Export declaration
-    export function quux() {
-        return bar() + 1;
+    // Export declarations
+    export var myVar = 42;
+
+    export function myFunction() {
+        return otherVar + otherFunction();
     }
 
-    var value = 'hello';
+    // Module reference
+    module another = anotherModule;
+
+    var value = another.anotherVar;
 
     var obj = {
         // Shorthand property

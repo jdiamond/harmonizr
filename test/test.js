@@ -228,6 +228,36 @@ describe('harmonizr', function() {
         harmonize(src, expected);
     });
 
+    it('allows whole module imports using module x = y with amd', function() {
+        var src      = 'module m1 {\n' +
+                       '    module m2 = m3;\n' +
+                       '}';
+        var expected = 'define([\'m3\'], function(m3) {\n' +
+                       '    var m2 = m3;\n' +
+                       '});';
+        harmonize(src, expected, { style: 'amd' });
+    });
+
+    it('allows whole module imports using module x = y with node', function() {
+        var src      = 'module m1 {\n' +
+                       '    module m2 = m3;\n' +
+                       '}';
+        var expected = '\n' +
+                       '    var m2 = require(\'m3\');\n' +
+                       '';
+        harmonize(src, expected, { style: 'node' });
+    });
+
+    it('allows whole module imports using module x = y with revealing modules', function() {
+        var src      = 'module m1 {\n' +
+                       '    module m2 = m3;\n' +
+                       '}';
+        var expected = 'var m1 = function() {\n' +
+                       '    var m2 = m3;\n' +
+                       '}();';
+        harmonize(src, expected, { style: 'revealing' });
+    });
+
 });
 
 function harmonize(src, expected, options) {
