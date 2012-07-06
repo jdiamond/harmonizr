@@ -6,7 +6,9 @@ function harmonize(src, options) {
     options = options || {};
     src = processShorthands(src, options);
     src = processMethods(src, options);
-    return processModules(src, options, moduleStyles[options.style]);
+    src = processArrowFunctions(src, options);
+    src = processModules(src, options, moduleStyles[options.style]);
+    return src;
 }
 
 function processShorthands(src, options) {
@@ -86,6 +88,62 @@ function processMethods(src, options) {
             col,
             0, // Delete nothing.
             ': function');
+    }
+
+    return lines.join('\n');
+}
+
+function processArrowFunctions(src, options) {
+    var ast = parse(src, { loc: true });
+
+    var arrowFunctions = [];
+
+    traverse(ast, function(node) {
+        if (node.type === Syntax.ArrowFunctionExpression) {
+            arrowFunctions.push(node);
+        }
+    });
+
+    var lines = src.split('\n');
+
+    for (var i = arrowFunctions.length - 1; i >= 0; i--) {
+        var node = arrowFunctions[i];
+        var startLine = node.loc.start.line - 1;
+        var startCol = node.loc.start.column;
+
+        var lastParam = node.params[node.params.length - 1];
+        var paramsEndLine = lastParam.loc.end.line - 1;
+        var paramsEndCol = lastParam.loc.end.column;
+
+        var bodyStartLine = node.body.loc.start.line - 1;
+        var bodyStartCol = node.body.loc.start.column;
+
+        var bodyEndLine = node.body.loc.end.line - 1;
+        var bodyEndCol = node.body.loc.end.column;
+
+        lines[bodyEndLine] = splice(
+            lines[bodyEndLine],
+            bodyEndCol,
+            0, // Delete nothing.
+            '; }');
+
+        lines[bodyStartLine] = splice(
+            lines[bodyStartLine],
+            bodyStartCol,
+            0, // Delete nothing.
+            ') { return ');
+
+        lines[paramsEndLine] = splice(
+            lines[paramsEndLine],
+            paramsEndCol,
+            bodyStartCol - paramsEndCol,
+            '');
+
+        lines[startLine] = splice(
+            lines[startLine],
+            startCol,
+            0, // Delete nothing.
+            'function(');
     }
 
     return lines.join('\n');

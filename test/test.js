@@ -258,6 +258,12 @@ describe('harmonizr', function() {
         harmonize(src, expected, { style: 'revealing' });
     });
 
+    it('supports arrow functions', function() {
+        var src      = 'var f = a => 42;';
+        var expected = 'var f = function(a) { return 42; };';
+        harmonize(src, expected);
+    });
+
 });
 
 function harmonize(src, expected, options) {
