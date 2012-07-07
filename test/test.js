@@ -272,11 +272,35 @@ describe('harmonizr', function() {
 
     describe('arrow functions', function() {
 
-      it('supports arrow functions', function() {
+        it('supports arrow functions', function() {
           var src      = 'var f = a => 42;';
           var expected = 'var f = function(a) { return 42; };';
           harmonize(src, expected);
-      });
+        });
+
+        it('supports arrow functions with no params', function() {
+          var src      = 'var f = () => 42;';
+          var expected = 'var f = function() { return 42; };';
+          harmonize(src, expected);
+        });
+
+        it('supports arrow functions with multiple params', function() {
+          var src      = 'var f = (a, b) => 42;';
+          var expected = 'var f = function(a, b) { return 42; };';
+          harmonize(src, expected);
+        });
+
+        it('supports arrow functions with one wrapped param', function() {
+          var src      = 'var f = (a) => 42;';
+          var expected = 'var f = function(a) { return 42; };';
+          harmonize(src, expected);
+        });
+
+        it('works across lines', function() {
+          var src      = 'var f = (\na\n)\n=>\n42;';
+          var expected = 'var f = function(\na\n\n\n) { return 42; };';
+          harmonize(src, expected);
+        });
 
     });
 

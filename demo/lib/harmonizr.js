@@ -111,9 +111,13 @@ function processArrowFunctions(src, options) {
         var startLine = node.loc.start.line - 1;
         var startCol = node.loc.start.column;
 
-        var lastParam = node.params[node.params.length - 1];
-        var paramsEndLine = lastParam.loc.end.line - 1;
-        var paramsEndCol = lastParam.loc.end.column;
+        var lastParam, paramsEndLine, paramsEndCol;
+
+        if (node.params.length) {
+            lastParam = node.params[node.params.length - 1];
+            paramsEndLine = lastParam.loc.end.line - 1;
+            paramsEndCol = lastParam.loc.end.column;
+        }
 
         var bodyStartLine = node.body.loc.start.line - 1;
         var bodyStartCol = node.body.loc.start.column;
@@ -121,24 +125,69 @@ function processArrowFunctions(src, options) {
         var bodyEndLine = node.body.loc.end.line - 1;
         var bodyEndCol = node.body.loc.end.column;
 
+        // Insert the closing of the function.
         lines[bodyEndLine] = splice(
             lines[bodyEndLine],
             bodyEndCol,
             0, // Delete nothing.
             '; }');
 
+        // Close the params and start the body.
         lines[bodyStartLine] = splice(
             lines[bodyStartLine],
             bodyStartCol,
             0, // Delete nothing.
             ') { return ');
 
-        lines[paramsEndLine] = splice(
-            lines[paramsEndLine],
-            paramsEndCol,
-            bodyStartCol - paramsEndCol,
-            '');
+        if (node.params.length) {
+            // Delete the => in between the params and the body.
+            lines[paramsEndLine] = splice(
+                lines[paramsEndLine],
+                paramsEndCol,
+                bodyStartCol - paramsEndCol,
+                '');
+            // In case the => is not on the same line as the params or body.
+            var n = paramsEndLine;
+            while (n++ < bodyStartLine) {
+                if (n < bodyStartLine) {
+                    lines[n] = '';
+                } else {
+                    lines[n] = splice(
+                        lines[n],
+                        0,
+                        bodyStartCol,
+                        '');
+                }
+            }
 
+            // Delete the last ).
+            var endsWithParen = lines[paramsEndLine].charAt(paramsEndCol - 1) === ')';
+            if (endsWithParen) {
+                lines[paramsEndLine] = splice(
+                    lines[paramsEndLine],
+                    paramsEndCol - 1,
+                    1,
+                    '');
+            }
+        } else {
+            // There are no params, so delete everything up to the body.
+            lines[startLine] = splice(
+                lines[startLine],
+                startCol + 1,
+                bodyStartCol - startCol - 1,
+                '');
+        }
+
+        // Delete the first (.
+        if (lines[startLine].charAt(startCol) === '(') {
+            lines[startLine] = splice(
+                lines[startLine],
+                startCol,
+                1,
+                '');
+        }
+
+        // Insert the opening of the function.
         lines[startLine] = splice(
             lines[startLine],
             startCol,
