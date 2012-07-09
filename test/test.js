@@ -296,6 +296,12 @@ describe('harmonizr', function() {
           harmonize(src, expected);
         });
 
+        it('allows curlies around the function body', function() {
+          var src      = 'var f = a => { return 42; };';
+          var expected = 'var f = function(a) { return 42; };';
+          harmonize(src, expected);
+        });
+
         it('works across lines', function() {
           var src      = 'var f = (\na\n)\n=>\n42;';
           var expected = 'var f = function(\na\n\n\n) { return 42; };';

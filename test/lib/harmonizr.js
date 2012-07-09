@@ -125,19 +125,32 @@ function processArrowFunctions(src, options) {
         var bodyEndLine = node.body.loc.end.line - 1;
         var bodyEndCol = node.body.loc.end.column;
 
-        // Insert the closing of the function.
-        lines[bodyEndLine] = splice(
-            lines[bodyEndLine],
-            bodyEndCol,
-            0, // Delete nothing.
-            '; }');
+        var hasCurlies =
+            lines[bodyStartLine].charAt(bodyStartCol) === '{' &&
+            lines[bodyEndLine].charAt(bodyEndCol - 1) === '}';
+
+        if (!hasCurlies) {
+            // Insert the closing of the function.
+            lines[bodyEndLine] = splice(
+                lines[bodyEndLine],
+                bodyEndCol,
+                0, // Delete nothing.
+                '; }');
+
+            // Close the params and start the body.
+            lines[bodyStartLine] = splice(
+                lines[bodyStartLine],
+                bodyStartCol,
+                0, // Delete nothing.
+                '{ return ');
+        }
 
         // Close the params and start the body.
         lines[bodyStartLine] = splice(
             lines[bodyStartLine],
             bodyStartCol,
             0, // Delete nothing.
-            ') { return ');
+            ') ');
 
         if (node.params.length) {
             // Delete the => in between the params and the body.
