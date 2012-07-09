@@ -16,7 +16,7 @@ function processShorthands(src, options) {
 
     var shorthands = [];
 
-    traverse(ast, function(node) {
+    traverse(ast, node => {
         if (node.type === Syntax.Property && node.shorthand) {
             shorthands.push(node);
         }
@@ -44,7 +44,7 @@ function processMethods(src, options) {
 
     var methods = [];
 
-    traverse(ast, function(node) {
+    traverse(ast, node => {
         if (node.type === Syntax.Property && node.method) {
             methods.push(node);
         }
@@ -98,7 +98,7 @@ function processArrowFunctions(src, options) {
 
     var arrowFunctions = [];
 
-    traverse(ast, function(node) {
+    traverse(ast, node => {
         if (node.type === Syntax.ArrowFunctionExpression) {
             arrowFunctions.push(node);
         }
@@ -124,6 +124,13 @@ function processArrowFunctions(src, options) {
 
         var bodyEndLine = node.body.loc.end.line - 1;
         var bodyEndCol = node.body.loc.end.column;
+
+        // Bind it to the lexical this.
+        lines[bodyEndLine] = splice(
+            lines[bodyEndLine],
+            bodyEndCol,
+            0, // Delete nothing.
+            '.bind(this)');
 
         var hasCurlies =
             lines[bodyStartLine].charAt(bodyStartCol) === '{' &&
@@ -220,7 +227,7 @@ function processModules(src, options, style) {
 
     var modules = [];
 
-    traverse(ast, function(node) {
+    traverse(ast, node => {
         if (node.type === Syntax.ModuleDeclaration) {
             modules.push(node);
             return false;
@@ -235,7 +242,7 @@ function processModules(src, options, style) {
 
         var imps = [];
 
-        traverse(mod, function(node) {
+        traverse(mod, node => {
             if (node.type === Syntax.ModuleDeclaration) {
                 if (node.id && node.from && node.from.type === 'Path') {
                     imps.push(node);
@@ -283,7 +290,7 @@ function processModules(src, options, style) {
 
         var exps = [];
 
-        traverse(mod, function(node) {
+        traverse(mod, node => {
             if (node.type === Syntax.ModuleDeclaration && node !== mod) {
                 return false;
             } else if (node.type === Syntax.ExportDeclaration) {
@@ -321,11 +328,11 @@ export var moduleStyles = {
         startModule(mod, imps, options) {
             var header = 'define(';
             if (imps.length) {
-                header += '[\'' + imps.map(function(imp) { return modulePath(importFrom(imp), options); }).join('\', \'') + '\'], ';
+                header += '[\'' + imps.map(imp => modulePath(importFrom(imp), options)).join('\', \'') + '\'], ';
             }
             header += 'function(';
             if (imps.length) {
-                header += imps.map(function(imp) { return importFrom(imp); }).join(', ');
+                header += imps.map(imp => importFrom(imp)).join(', ');
             }
             header += ') {';
             return header;
@@ -334,7 +341,7 @@ export var moduleStyles = {
             return 'var ' + imp.id.name + ' = ' + imp.from.body[0].name + ';';
         },
         importDeclaration(mod, imp, options) {
-            return 'var ' + imp.specifiers.map(function(spec) {
+            return 'var ' + imp.specifiers.map(spec => {
                 var id = spec.type === Syntax.Identifier ? spec.name : spec.id.name;
                 var from = spec.from ? joinPath(spec.from) : id;
                 return id + ' = ' + importFrom(imp) + '.' + from;
@@ -346,7 +353,7 @@ export var moduleStyles = {
             ret += 'return {';
             if (exps.length) {
                 ret += '\n';
-                ret += exps.map(function(exp) {
+                ret += exps.map(exp => {
                     var id = exportName(exp);
                     return indent + indent + id + ': ' + id;
                 }).join(',\n');
@@ -371,7 +378,7 @@ export var moduleStyles = {
         importDeclaration(mod, imp, options) {
             return 'var ' + importFrom(imp) +
                    ' = require(\'' + modulePath(importFrom(imp), options) + '\'), ' +
-                   imp.specifiers.map(function(spec) {
+                   imp.specifiers.map(spec => {
                        var id = spec.type === Syntax.Identifier ? spec.name : spec.id.name;
                        var from = spec.from ? joinPath(spec.from) : id;
                        return id + ' = ' + importFrom(imp) + '.' + from;
@@ -380,7 +387,7 @@ export var moduleStyles = {
         exports(mod, exps, options) {
             var indent = options.indent;
             var returns = indent + 'module.exports = {';
-            returns += '\n' + exps.map(function(exp) {
+            returns += '\n' + exps.map(exp => {
                 var id = exportName(exp);
                 return indent + indent + id + ': ' + id;
             }).join(',\n');
@@ -401,7 +408,7 @@ export var moduleStyles = {
             return 'var ' + imp.id.name + ' = ' + imp.from.body[0].name + ';';
         },
         importDeclaration(mod, imp, options) {
-            return 'var ' + imp.specifiers.map(function(spec) {
+            return 'var ' + imp.specifiers.map(spec => {
                 var id = spec.type === Syntax.Identifier ? spec.name : spec.id.name;
                 var from = spec.from ? joinPath(spec.from) : id;
                 return id + ' = ' + importFrom(imp) + '.' + from;
@@ -411,7 +418,7 @@ export var moduleStyles = {
             var indent = options.indent;
             var returns = indent + 'return {';
             if (exps.length) {
-                returns += '\n' + exps.map(function(exp) {
+                returns += '\n' + exps.map(exp => {
                     var id = exportName(exp);
                     return indent + indent + id + ': ' + id;
                 }).join(',\n');
@@ -431,7 +438,7 @@ function traverse(node, visitor) {
         return;
     }
 
-    Object.keys(node).forEach(function(key) {
+    Object.keys(node).forEach(key => {
         var child = node[key];
         if (child && typeof child === 'object') {
             traverse(child, visitor);
@@ -457,9 +464,7 @@ function exportName(exp) {
 }
 
 function joinPath(path) {
-    return path.body.map(function(id) {
-        return id.name;
-    }).join('.');
+    return path.body.map(id => id.name).join('.');
 }
 
 function splice(str, index, howMany, insert) {
