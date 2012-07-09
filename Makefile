@@ -17,11 +17,12 @@ test/lib/harmonizr.js: src/harmonizr.js bin/harmonizr
 hint: lib/harmonizr.js PHONY
 	node node_modules/jshint/bin/hint lib/harmonizr.js bin/harmonizr demo/*.js test/test.js
 
-test: PHONY
+test: lib/harmonizr.js PHONY
 	node node_modules/mocha/bin/mocha
 
-cover: PHONY
+cover: lib/harmonizr.js PHONY
 	node node_modules/cover/bin/cover run node_modules/mocha/bin/_mocha
 	node node_modules/cover/bin/cover report html
 	node node_modules/cover/bin/cover report cli
+
 PHONY:

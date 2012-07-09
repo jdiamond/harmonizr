@@ -1,0 +1,16 @@
+{
+    "curly": true,
+    "eqeqeq": true,
+    "immed": true,
+    "newcap": true,
+    "trailing": true,
+    "undef": true,
+
+    "predef": [
+        "require",  // Node and RequireJS
+        "module",   // Node
+        "define",   // RequireJS
+        "describe", // Mocha
+        "it"        // Mocha
+    ]
+}

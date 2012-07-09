@@ -1,3 +1,5 @@
+/*global esprima:true */
+
 require({
     paths: {
         harmonizr: 'lib/harmonizr',
@@ -25,7 +27,7 @@ require({
 ], function(harmonizr, $, CodeMirror) {
 
     $(function() {
-        var editor = CodeMirror($('#editor')[0], {
+        var editor = newCodeMirror($('#editor')[0], {
             lineNumbers: true,
             matchBrackets: true,
             autofocus: true,
@@ -36,7 +38,7 @@ require({
             }
         });
 
-        var result = CodeMirror($('#result')[0], {
+        var result = newCodeMirror($('#result')[0], {
             lineNumbers: true,
             matchBrackets: true,
             readOnly: true,
@@ -45,6 +47,11 @@ require({
                 'Esc': function() { editor.focus(); }
             }
         });
+
+        function newCodeMirror(el, opts) {
+            /*jshint newcap:false */
+            return CodeMirror(el, opts);
+        }
 
         function cursorChanged(e) {
             clearHighlights();
@@ -55,7 +62,9 @@ require({
         var highlightIndex = -1;
 
         function highlightLines(lineNumber) {
-            if (lineNumber < 0) return;
+            if (lineNumber < 0) {
+                return;
+            }
             highlightIndex = lineNumber;
             editor.setLineClass(highlightIndex, null, highlightClass);
             result.setLineClass(highlightIndex, null, highlightClass);
