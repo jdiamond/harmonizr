@@ -242,7 +242,7 @@ function processModules(src, options, style) {
 
         traverse(mod, node => {
             if (node.type === Syntax.ModuleDeclaration) {
-                if (node.id && node.from && node.from.type === 'Path') {
+                if (node.id && node.from && node.from.type === Syntax.Path) {
                     imps.push(node);
                 } else if (node !== mod) {
                     return false;
