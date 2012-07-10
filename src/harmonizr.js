@@ -218,7 +218,7 @@ function processArrowFunctions(src, options) {
 
 function processModules(src, options, style) {
     if (options.module) {
-        src = 'module ' + options.module + '{\n' + src + '\n}';
+        src = 'module ' + options.module + '{' + src + '\n}';
     }
 
     var ast = parse(src, { loc: true });
@@ -267,11 +267,6 @@ function processModules(src, options, style) {
             1, // Delete the closing brace.
             style.endModule(mod, options));
 
-        lines[moduleStartLine] = splice(
-            lines[moduleStartLine],
-            moduleStartColumn,
-            bodyStartColumn - moduleStartColumn + 1, // Delete from start of module to opening brace.
-            style.startModule(mod, imps, options));
 
         imps.forEach(imp => {
             var importStartLine = imp.loc.start.line - 1;
@@ -314,6 +309,12 @@ function processModules(src, options, style) {
                 0,
                 style.exports(mod, exps, options));
         }
+
+        lines[moduleStartLine] = splice(
+            lines[moduleStartLine],
+            moduleStartColumn,
+            bodyStartColumn - moduleStartColumn + 1, // Delete from start of module to opening brace.
+            style.startModule(mod, imps, options));
     });
 
     src = lines.join('\n');

@@ -167,8 +167,7 @@ describe('harmonizr', function() {
                            'import { b, c: d } from m3;\n' +
                            'export var e;\n' +
                            'export function f() {}';
-            var expected = 'var m1 = function() {\n' +
-                           'var a = m2.a;\n' +
+            var expected = 'var m1 = function() {var a = m2.a;\n' +
                            'var b = m3.b, c = m3.d;\n' +
                            'var e;\n' +
                            'function f() {}\n' +
