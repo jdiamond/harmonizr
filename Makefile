@@ -27,3 +27,5 @@ cover:
 	node node_modules/cover/bin/cover run node_modules/mocha/bin/_mocha
 	node node_modules/cover/bin/cover report html
 	node node_modules/cover/bin/cover report cli
+
+.PHONY: hint test cover
