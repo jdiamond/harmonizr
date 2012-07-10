@@ -7,6 +7,7 @@ A "transpiler" that brings tomorrow's Harmony to today's JavaScript.
   - Harmony modules to AMD, Node.js, or Revealing Module Pattern
   - Shorthand properties
   - Method definitions
+  - Arrow functions (requires `Function.prototype.bind`)
   - Maintains line numbers
 
 ## Demo
