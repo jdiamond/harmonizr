@@ -267,7 +267,6 @@ function processModules(src, options, style) {
             1, // Delete the closing brace.
             style.endModule(mod, options));
 
-
         imps.forEach(imp => {
             var importStartLine = imp.loc.start.line - 1;
             var importStartColumn = imp.loc.start.column;
@@ -347,17 +346,18 @@ export var moduleStyles = {
             }).join(', ') + ';';
         },
         exports(mod, exps, options) {
-            var indent = options.indent;
-            var ret = indent;
+            var indent1 = options.module ? '' : options.indent;
+            var indent2 = options.indent;
+            var ret = '\n' + indent1;
             ret += 'return {';
             if (exps.length) {
                 ret += '\n';
                 ret += exps.map(exp => {
                     var id = exportName(exp);
-                    return indent + indent + id + ': ' + id;
+                    return indent1 + indent2 + id + ': ' + id;
                 }).join(',\n');
                 ret += '\n';
-                ret += indent;
+                ret += indent1;
             }
             ret += '};\n';
             return ret;
@@ -384,13 +384,14 @@ export var moduleStyles = {
                    }).join(', ') + ';';
         },
         exports(mod, exps, options) {
-            var indent = options.indent;
-            var returns = indent + 'module.exports = {';
+            var indent1 = options.module ? '' : options.indent;
+            var indent2 = options.indent;
+            var returns = '\n' + indent1 + 'module.exports = {';
             returns += '\n' + exps.map(exp => {
                 var id = exportName(exp);
-                return indent + indent + id + ': ' + id;
+                return indent1 + indent2 + id + ': ' + id;
             }).join(',\n');
-            returns += '\n' + indent;
+            returns += '\n' + indent1;
             returns += '};\n';
             return returns;
         },
@@ -414,14 +415,15 @@ export var moduleStyles = {
             }).join(', ') + ';';
         },
         exports(mod, exps, options) {
-            var indent = options.indent;
-            var returns = indent + 'return {';
+            var indent1 = options.module ? '' : options.indent;
+            var indent2 = options.indent;
+            var returns = '\n' + indent1 + 'return {';
             if (exps.length) {
                 returns += '\n' + exps.map(exp => {
                     var id = exportName(exp);
-                    return indent + indent + id + ': ' + id;
+                    return indent1 + indent2 + id + ': ' + id;
                 }).join(',\n');
-                returns += '\n' + indent;
+                returns += '\n' + indent1;
             }
             returns += '};\n';
             return returns;

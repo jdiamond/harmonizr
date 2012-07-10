@@ -84,6 +84,7 @@ describe('harmonizr', function() {
             var expected = 'define(function() {\n' +
                            '    var a;\n' +
                            '    function b() {}\n' +
+                           '\n' +
                            '    return {\n' +
                            '        a: a,\n' +
                            '        b: b\n' +
@@ -102,11 +103,11 @@ describe('harmonizr', function() {
                            '    var m2 = require(\'m2\'), a = m2.a, b = m2.c.d;\n' +
                            '    var e;\n' +
                            '    function f() {}\n' +
+                           '\n' +
                            '    module.exports = {\n' +
                            '        e: e,\n' +
                            '        f: f\n' +
-                           '    };\n' +
-                           '';
+                           '    };\n';
             harmonize(src, expected, { style: 'node' });
         });
 
@@ -132,6 +133,7 @@ describe('harmonizr', function() {
                            '    var b = m3.b, c = m3.d;\n' +
                            '    var e;\n' +
                            '    function f() {}\n' +
+                           '\n' +
                            '    return {\n' +
                            '        e: e,\n' +
                            '        f: f\n' +
@@ -154,6 +156,7 @@ describe('harmonizr', function() {
                            '    var b = m3.b, c = m3.d;\n' +
                            '    var e;\n' +
                            '    function f() {}\n' +
+                           '\n' +
                            '    return {\n' +
                            '        e: e,\n' +
                            '        f: f\n' +
@@ -162,21 +165,48 @@ describe('harmonizr', function() {
             harmonize(src, expected, { style: 'revealing' });
         });
 
-        it('can assume all the code is wrapped in a module declaration', function() {
-            var src      = 'import a from m2;\n' +
-                           'import { b, c: d } from m3;\n' +
-                           'export var e;\n' +
-                           'export function f() {}';
-            var expected = 'var m1 = function() {var a = m2.a;\n' +
-                           'var b = m3.b, c = m3.d;\n' +
-                           'var e;\n' +
-                           'function f() {}\n' +
+        it('supports implicit AMD-style modules', function() {
+            var src      = 'export function f() {\n' +
+                           '    return 42;\n' +
+                           '}';
+            var expected = 'define(function() {function f() {\n' +
+                           '    return 42;\n' +
+                           '}\n' +
+                           '\n' +
                            'return {\n' +
-                           'e: e,\n' +
-                           'f: f\n' +
+                           '    f: f\n' +
+                           '};\n' +
+                           '});';
+            harmonize(src, expected, { style: 'amd', module: 'm' });
+        });
+
+        it('supports implicit Node.js-style modules', function() {
+            var src      = 'export function f() {\n' +
+                           '    return 42;\n' +
+                           '}';
+            var expected = 'function f() {\n' +
+                           '    return 42;\n' +
+                           '}\n' +
+                           '\n' +
+                           'module.exports = {\n' +
+                           '    f: f\n' +
+                           '};\n';
+            harmonize(src, expected, { style: 'node', module: 'm' });
+        });
+
+        it('supports implicit Revealing Module-style modules', function() {
+            var src      = 'export function f() {\n' +
+                           '    return 42;\n' +
+                           '}';
+            var expected = 'var m = function() {function f() {\n' +
+                           '    return 42;\n' +
+                           '}\n' +
+                           '\n' +
+                           'return {\n' +
+                           '    f: f\n' +
                            '};\n' +
                            '}();';
-            harmonize(src, expected, { style: 'revealing', module: 'm1' });
+            harmonize(src, expected, { style: 'revealing', module: 'm' });
         });
 
         it('allows whole module imports using module x = y with amd', function() {
