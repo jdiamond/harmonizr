@@ -70,7 +70,7 @@ Harmonizr transpiles itself. Since Node.js doesn't support the newer
 syntax harmonizr.js uses in the src directory, it loads the
 harmonizr module out of the lib directory. Be careful when building.
 
-Tests are the test directory. Run them with `npm test` or by opening
+Tests are in the test directory. Run them with `npm test` or by opening
 test.html.
 
 If you'd like to contribute, please try to include tests, ensure the
