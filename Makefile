@@ -14,15 +14,16 @@ demo/lib/harmonizr.js: src/harmonizr.js bin/harmonizr
 test/lib/harmonizr.js: src/harmonizr.js bin/harmonizr
 	node bin/harmonizr --revealing src/harmonizr.js --output test/lib/harmonizr.js
 
-hint: lib/harmonizr.js PHONY
-	node node_modules/jshint/bin/hint lib/harmonizr.js bin/harmonizr demo/*.js test/test.js
+hint:
+	# JSHint doesn't process files with no extension?
+	cp bin/harmonizr bin/harmonizr.js
+	node node_modules/jshint/bin/hint lib/harmonizr.js demo/*.js test/test.js bin/harmonizr.js
+	rm bin/harmonizr.js
 
-test: lib/harmonizr.js PHONY
+test:
 	node node_modules/mocha/bin/mocha
 
-cover: lib/harmonizr.js PHONY
+cover:
 	node node_modules/cover/bin/cover run node_modules/mocha/bin/_mocha
 	node node_modules/cover/bin/cover report html
 	node node_modules/cover/bin/cover report cli
-
-PHONY:

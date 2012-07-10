@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+/*jshint node:true, strict: false */
+
 var fs = require('fs');
 var program = require('commander');
 var harmonizr = require('../');
