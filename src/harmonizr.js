@@ -1,5 +1,3 @@
-module harmonizr {
-
 import { parse, Syntax } from esprima;
 
 export function harmonize(src, options) {
@@ -236,7 +234,7 @@ function processModules(src, options, style) {
 
     var lines = src.split('\n');
 
-    modules.forEach(function(mod) {
+    modules.forEach(mod => {
 
         options.indent = detectIndent(mod, lines);
 
@@ -275,7 +273,7 @@ function processModules(src, options, style) {
             bodyStartColumn - moduleStartColumn + 1, // Delete from start of module to opening brace.
             style.startModule(mod, imps, options));
 
-        imps.forEach(function(imp) {
+        imps.forEach(imp => {
             var importStartLine = imp.loc.start.line - 1;
             var importStartColumn = imp.loc.start.column;
             var importEndColumn = imp.loc.end.column;
@@ -298,7 +296,7 @@ function processModules(src, options, style) {
             }
         });
 
-        exps.forEach(function(exp) {
+        exps.forEach(exp => {
             var exportStartLine = exp.loc.start.line - 1;
             var exportStartColumn = exp.loc.start.column;
             var declarationStartColumn = exp.declaration.loc.start.column;
@@ -484,6 +482,4 @@ function detectIndent(mod, lines) {
         i++;
     }
     return '';
-}
-
 }

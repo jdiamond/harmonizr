@@ -1,5 +1,4 @@
 var harmonizr = function() {
-
 var parse = esprima.parse, Syntax = esprima.Syntax;
 
 function harmonize(src, options) {
@@ -286,7 +285,7 @@ function processModules(src, options, style) {
                 imp.type === Syntax.ModuleDeclaration ?
                     style.importModuleDeclaration(mod, imp, options) :
                     style.importDeclaration(mod, imp, options));
-        });
+        }.bind(this));
 
         var exps = [];
 
@@ -307,7 +306,7 @@ function processModules(src, options, style) {
                 exportStartColumn,
                 declarationStartColumn - exportStartColumn, // Delete the export keyword.
                 ''); // Nothing to insert.
-        });
+        }.bind(this));
 
         if (exps.length) {
             lines[moduleEndLine] = splice(
@@ -316,7 +315,7 @@ function processModules(src, options, style) {
                 0,
                 style.exports(mod, exps, options));
         }
-    });
+    }.bind(this));
 
     src = lines.join('\n');
 
@@ -485,7 +484,6 @@ function detectIndent(mod, lines) {
     }
     return '';
 }
-
     return {
         harmonize: harmonize,
         moduleStyles: moduleStyles
