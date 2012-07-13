@@ -18,7 +18,7 @@ function processShorthands(src, options) {
         if (node.type === Syntax.Property && node.shorthand) {
             shorthands.push(node);
         }
-    }.bind(this));
+    });
 
     var lines = src.split('\n');
 
@@ -46,7 +46,7 @@ function processMethods(src, options) {
         if (node.type === Syntax.Property && node.method) {
             methods.push(node);
         }
-    }.bind(this));
+    });
 
     var lines = src.split('\n');
 
@@ -100,7 +100,7 @@ function processArrowFunctions(src, options) {
         if (node.type === Syntax.ArrowFunctionExpression) {
             arrowFunctions.push(node);
         }
-    }.bind(this));
+    });
 
     var lines = src.split('\n');
 
@@ -123,12 +123,16 @@ function processArrowFunctions(src, options) {
         var bodyEndLine = node.body.loc.end.line - 1;
         var bodyEndCol = node.body.loc.end.column;
 
-        // Bind it to the lexical this.
-        lines[bodyEndLine] = splice(
-            lines[bodyEndLine],
-            bodyEndCol,
-            0, // Delete nothing.
-            '.bind(this)');
+        var needsBind = containsThisExpression(node);
+
+        if (needsBind) {
+            // Bind it to the lexical this.
+            lines[bodyEndLine] = splice(
+                lines[bodyEndLine],
+                bodyEndCol,
+                0, // Delete nothing.
+                '.bind(this)');
+        }
 
         var hasCurlies =
             lines[bodyStartLine].charAt(bodyStartCol) === '{' &&
@@ -214,6 +218,18 @@ function processArrowFunctions(src, options) {
     }
 
     return lines.join('\n');
+
+    function containsThisExpression(node) {
+        var result = false;
+        traverse(node, function(innerNode) {
+            if (innerNode.type === Syntax.ThisExpression) {
+                result = true;
+            } else if (innerNode !== node && innerNode.type === Syntax.ArrowFunctionExpression) {
+                return false;
+            }
+        });
+        return result;
+    }
 }
 
 function processModules(src, options, style) {
@@ -230,7 +246,7 @@ function processModules(src, options, style) {
             modules.push(node);
             return false;
         }
-    }.bind(this));
+    });
 
     var lines = src.split('\n');
 
@@ -251,7 +267,7 @@ function processModules(src, options, style) {
                        node.specifiers[0].type !== Syntax.Glob) {
                 imps.push(node);
             }
-        }.bind(this));
+        });
 
         var moduleStartLine = mod.loc.start.line - 1;
         var moduleStartColumn = mod.loc.start.column;
@@ -278,7 +294,7 @@ function processModules(src, options, style) {
                 imp.type === Syntax.ModuleDeclaration ?
                     style.importModuleDeclaration(mod, imp, options) :
                     style.importDeclaration(mod, imp, options));
-        }.bind(this));
+        });
 
         var exps = [];
 
@@ -288,7 +304,7 @@ function processModules(src, options, style) {
             } else if (node.type === Syntax.ExportDeclaration) {
                 exps.push(node);
             }
-        }.bind(this));
+        });
 
         exps.forEach(function(exp) {
             var exportStartLine = exp.loc.start.line - 1;
@@ -299,7 +315,7 @@ function processModules(src, options, style) {
                 exportStartColumn,
                 declarationStartColumn - exportStartColumn, // Delete the export keyword.
                 ''); // Nothing to insert.
-        }.bind(this));
+        });
 
         if (exps.length) {
             lines[moduleEndLine] = splice(
@@ -314,7 +330,7 @@ function processModules(src, options, style) {
             moduleStartColumn,
             bodyStartColumn - moduleStartColumn + 1, // Delete from start of module to opening brace.
             style.startModule(mod, imps, options));
-    }.bind(this));
+    });
 
     src = lines.join('\n');
 
@@ -326,11 +342,11 @@ var moduleStyles = {
         startModule: function(mod, imps, options) {
             var header = 'define(';
             if (imps.length) {
-                header += '[\'' + imps.map(function(imp) { return modulePath(importFrom(imp), options); }.bind(this)).join('\', \'') + '\'], ';
+                header += '[\'' + imps.map(function(imp) { return modulePath(importFrom(imp), options); }).join('\', \'') + '\'], ';
             }
             header += 'function(';
             if (imps.length) {
-                header += imps.map(function(imp) { return importFrom(imp); }.bind(this)).join(', ');
+                header += imps.map(function(imp) { return importFrom(imp); }).join(', ');
             }
             header += ') {';
             return header;
@@ -343,7 +359,7 @@ var moduleStyles = {
                 var id = spec.type === Syntax.Identifier ? spec.name : spec.id.name;
                 var from = spec.from ? joinPath(spec.from) : id;
                 return id + ' = ' + importFrom(imp) + '.' + from;
-            }.bind(this)).join(', ') + ';';
+            }).join(', ') + ';';
         },
         exports: function(mod, exps, options) {
             var indent1 = options.module ? '' : options.indent;
@@ -355,7 +371,7 @@ var moduleStyles = {
                 ret += exps.map(function(exp) {
                     var id = exportName(exp);
                     return indent1 + indent2 + id + ': ' + id;
-                }.bind(this)).join(',\n');
+                }).join(',\n');
                 ret += '\n';
                 ret += indent1;
             }
@@ -381,7 +397,7 @@ var moduleStyles = {
                        var id = spec.type === Syntax.Identifier ? spec.name : spec.id.name;
                        var from = spec.from ? joinPath(spec.from) : id;
                        return id + ' = ' + importFrom(imp) + '.' + from;
-                   }.bind(this)).join(', ') + ';';
+                   }).join(', ') + ';';
         },
         exports: function(mod, exps, options) {
             var indent1 = options.module ? '' : options.indent;
@@ -390,7 +406,7 @@ var moduleStyles = {
             returns += '\n' + exps.map(function(exp) {
                 var id = exportName(exp);
                 return indent1 + indent2 + id + ': ' + id;
-            }.bind(this)).join(',\n');
+            }).join(',\n');
             returns += '\n' + indent1;
             returns += '};\n';
             return returns;
@@ -412,7 +428,7 @@ var moduleStyles = {
                 var id = spec.type === Syntax.Identifier ? spec.name : spec.id.name;
                 var from = spec.from ? joinPath(spec.from) : id;
                 return id + ' = ' + importFrom(imp) + '.' + from;
-            }.bind(this)).join(', ') + ';';
+            }).join(', ') + ';';
         },
         exports: function(mod, exps, options) {
             var indent1 = options.module ? '' : options.indent;
@@ -422,7 +438,7 @@ var moduleStyles = {
                 returns += '\n' + exps.map(function(exp) {
                     var id = exportName(exp);
                     return indent1 + indent2 + id + ': ' + id;
-                }.bind(this)).join(',\n');
+                }).join(',\n');
                 returns += '\n' + indent1;
             }
             returns += '};\n';
@@ -444,7 +460,7 @@ function traverse(node, visitor) {
         if (child && typeof child === 'object') {
             traverse(child, visitor);
         }
-    }.bind(this));
+    });
 }
 
 function modulePath(moduleName, options) {
@@ -465,7 +481,7 @@ function exportName(exp) {
 }
 
 function joinPath(path) {
-    return path.body.map(function(id) { return id.name; }.bind(this)).join('.');
+    return path.body.map(function(id) { return id.name; }).join('.');
 }
 
 function splice(str, index, howMany, insert) {

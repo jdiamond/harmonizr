@@ -123,12 +123,16 @@ function processArrowFunctions(src, options) {
         var bodyEndLine = node.body.loc.end.line - 1;
         var bodyEndCol = node.body.loc.end.column;
 
-        // Bind it to the lexical this.
-        lines[bodyEndLine] = splice(
-            lines[bodyEndLine],
-            bodyEndCol,
-            0, // Delete nothing.
-            '.bind(this)');
+        var needsBind = containsThisExpression(node);
+
+        if (needsBind) {
+            // Bind it to the lexical this.
+            lines[bodyEndLine] = splice(
+                lines[bodyEndLine],
+                bodyEndCol,
+                0, // Delete nothing.
+                '.bind(this)');
+        }
 
         var hasCurlies =
             lines[bodyStartLine].charAt(bodyStartCol) === '{' &&
@@ -214,6 +218,18 @@ function processArrowFunctions(src, options) {
     }
 
     return lines.join('\n');
+
+    function containsThisExpression(node) {
+        var result = false;
+        traverse(node, innerNode => {
+            if (innerNode.type === Syntax.ThisExpression) {
+                result = true;
+            } else if (innerNode !== node && innerNode.type === Syntax.ArrowFunctionExpression) {
+                return false;
+            }
+        });
+        return result;
+    }
 }
 
 function processModules(src, options, style) {

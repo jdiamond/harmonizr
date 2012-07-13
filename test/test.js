@@ -303,37 +303,43 @@ describe('harmonizr', function() {
 
         it('supports arrow functions', function() {
           var src      = 'var f = a => 42;';
-          var expected = 'var f = function(a) { return 42; }.bind(this);';
+          var expected = 'var f = function(a) { return 42; };';
           harmonize(src, expected);
         });
 
         it('supports arrow functions with no params', function() {
           var src      = 'var f = () => 42;';
-          var expected = 'var f = function() { return 42; }.bind(this);';
+          var expected = 'var f = function() { return 42; };';
           harmonize(src, expected);
         });
 
         it('supports arrow functions with multiple params', function() {
           var src      = 'var f = (a, b) => 42;';
-          var expected = 'var f = function(a, b) { return 42; }.bind(this);';
+          var expected = 'var f = function(a, b) { return 42; };';
           harmonize(src, expected);
         });
 
         it('supports arrow functions with one wrapped param', function() {
           var src      = 'var f = (a) => 42;';
-          var expected = 'var f = function(a) { return 42; }.bind(this);';
+          var expected = 'var f = function(a) { return 42; };';
           harmonize(src, expected);
         });
 
         it('allows curlies around the function body', function() {
           var src      = 'var f = a => { return 42; };';
-          var expected = 'var f = function(a) { return 42; }.bind(this);';
+          var expected = 'var f = function(a) { return 42; };';
           harmonize(src, expected);
         });
 
         it('works across lines', function() {
           var src      = 'var f = (\na\n)\n=>\n42;';
-          var expected = 'var f = function(\na\n\n\n) { return 42; }.bind(this);';
+          var expected = 'var f = function(\na\n\n\n) { return 42; };';
+          harmonize(src, expected);
+        });
+
+        it('binds to outer this if it needs to', function() {
+          var src      = 'var f = a => this.b;';
+          var expected = 'var f = function(a) { return this.b; }.bind(this);';
           harmonize(src, expected);
         });
 
