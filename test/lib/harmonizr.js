@@ -11,6 +11,7 @@ function harmonize(src, options) {
 
 function processShorthands(src, options) {
     var ast = parse(src, { loc: true });
+    var lines = src.split('\n');
 
     var shorthands = [];
 
@@ -19,8 +20,6 @@ function processShorthands(src, options) {
             shorthands.push(node);
         }
     });
-
-    var lines = src.split('\n');
 
     for (var i = shorthands.length - 1; i >= 0; i--) {
         var prop = shorthands[i];
@@ -39,6 +38,7 @@ function processShorthands(src, options) {
 
 function processMethods(src, options) {
     var ast = parse(src, { loc: true });
+    var lines = src.split('\n');
 
     var methods = [];
 
@@ -47,8 +47,6 @@ function processMethods(src, options) {
             methods.push(node);
         }
     });
-
-    var lines = src.split('\n');
 
     for (var i = methods.length - 1; i >= 0; i--) {
         var prop = methods[i];
@@ -238,11 +236,16 @@ function processArrowFunctions(src, options) {
 }
 
 function processModules(src, options, style) {
+    if (!style) {
+        return src;
+    }
+
     if (options.module) {
         src = 'module ' + options.module + '{' + src + '\n}';
     }
 
     var ast = parse(src, { loc: true });
+    var lines = src.split('\n');
 
     var modules = [];
 
@@ -252,8 +255,6 @@ function processModules(src, options, style) {
             return false;
         }
     });
-
-    var lines = src.split('\n');
 
     modules.forEach(function(mod) {
 
