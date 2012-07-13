@@ -337,9 +337,15 @@ describe('harmonizr', function() {
           harmonize(src, expected);
         });
 
-        it('binds to outer this if it needs to', function() {
+        it('binds to the lexical this if it needs to', function() {
           var src      = 'var f = a => this.b;';
           var expected = 'var f = function(a) { return this.b; }.bind(this);';
+          harmonize(src, expected);
+        });
+
+        it('allows nested arrow functions', function() {
+          var src      = 'var f = a => b => 42;';
+          var expected = 'var f = function(a) { return function(b) { return 42; }; };';
           harmonize(src, expected);
         });
 

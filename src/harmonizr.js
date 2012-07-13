@@ -93,6 +93,7 @@ function processMethods(src, options) {
 
 function processArrowFunctions(src, options) {
     var ast = parse(src, { loc: true });
+    var lines = src.split('\n');
 
     var arrowFunctions = [];
 
@@ -102,10 +103,9 @@ function processArrowFunctions(src, options) {
         }
     });
 
-    var lines = src.split('\n');
+    arrowFunctions.reverse();
 
-    for (var i = arrowFunctions.length - 1; i >= 0; i--) {
-        var node = arrowFunctions[i];
+    arrowFunctions.forEach(node => {
         var startLine = node.loc.start.line - 1;
         var startCol = node.loc.start.column;
 
@@ -145,7 +145,32 @@ function processArrowFunctions(src, options) {
                 bodyEndCol,
                 0, // Delete nothing.
                 '; }');
+        }
+    });
 
+    arrowFunctions.forEach(node => {
+        var startLine = node.loc.start.line - 1;
+        var startCol = node.loc.start.column;
+
+        var lastParam, paramsEndLine, paramsEndCol;
+
+        if (node.params.length) {
+            lastParam = node.params[node.params.length - 1];
+            paramsEndLine = lastParam.loc.end.line - 1;
+            paramsEndCol = lastParam.loc.end.column;
+        }
+
+        var bodyStartLine = node.body.loc.start.line - 1;
+        var bodyStartCol = node.body.loc.start.column;
+
+        var bodyEndLine = node.body.loc.end.line - 1;
+        var bodyEndCol = node.body.loc.end.column;
+
+        var hasCurlies =
+            lines[bodyStartLine].charAt(bodyStartCol) === '{' &&
+            lines[bodyEndLine].charAt(bodyEndCol - 1) === '}';
+
+        if (!hasCurlies) {
             // Close the params and start the body.
             lines[bodyStartLine] = splice(
                 lines[bodyStartLine],
@@ -215,7 +240,7 @@ function processArrowFunctions(src, options) {
             startCol,
             0, // Delete nothing.
             'function(');
-    }
+    });
 
     return lines.join('\n');
 
@@ -451,7 +476,7 @@ export var moduleStyles = {
 };
 
 function traverse(node, visitor) {
-    if (visitor.call(null, node) === false) {
+    if (visitor(node) === false) {
         return;
     }
 
