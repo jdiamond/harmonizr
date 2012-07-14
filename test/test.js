@@ -351,6 +351,16 @@ describe('harmonizr', function() {
 
     });
 
+    describe('destructuring assignments', function() {
+
+        it('works with arrays', function() {
+            var src      = '[a, b] = [c, d];';
+            var expected = 'a = [c, d], b = a[1], a = a[0];';
+            harmonize(src, expected);
+        });
+
+    });
+
 });
 
 function harmonize(src, expected, options) {

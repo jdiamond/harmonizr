@@ -5,6 +5,7 @@ export function harmonize(src, options) {
     src = processShorthands(src, options);
     src = processMethods(src, options);
     src = processArrowFunctions(src, options);
+    src = processDestructuringAssignments(src, options);
     src = processModules(src, options, moduleStyles[options.style]);
     return src;
 }
@@ -233,6 +234,58 @@ function processArrowFunctions(src, options) {
         });
         return result;
     }
+}
+
+function processDestructuringAssignments(src, options) {
+    var ast = parse(src, { loc: true });
+    var lines = src.split('\n');
+
+    var nodes = [];
+
+    traverse(ast, node => {
+        if (node.type === Syntax.AssignmentExpression && node.left.type === Syntax.ArrayPattern) {
+            nodes.push(node);
+        }
+    });
+
+    nodes.reverse();
+
+    nodes.forEach(function(node) {
+        var firstId = node.left.elements[0].name;
+
+        var endLine = node.loc.end.line - 1;
+        var endCol = node.loc.end.column;
+        lines[endLine] = splice(
+            lines[endLine],
+            endCol,
+            0, // Delete nothing.
+            ', ' + getAssignments());
+
+        var patternStartLine = node.left.loc.start.line - 1;
+        var patternStartCol = node.left.loc.start.column;
+        var patternEndCol = node.left.loc.end.column;
+        lines[patternStartLine] = splice(
+            lines[patternStartLine],
+            patternStartCol,
+            patternEndCol - patternStartCol,
+            firstId);
+
+        function getAssignments() {
+            var all = [];
+            for (var i = 1; i < node.left.elements.length; i++) {
+                var id = node.left.elements[i].name;
+                all.push(getAssignment(id, i));
+            }
+            all.push(getAssignment(firstId, 0));
+            return all.join(', ');
+        }
+
+        function getAssignment(id, index) {
+            return id + ' = ' + firstId + '[' + index + ']';
+        }
+    });
+
+    return lines.join('\n');
 }
 
 function processModules(src, options, style) {
