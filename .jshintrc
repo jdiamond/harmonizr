@@ -7,6 +7,7 @@
     "undef": true,
 
     "predef": [
+        "console",
         "require",  // Node and RequireJS
         "module",   // Node
         "define",   // RequireJS
