@@ -239,6 +239,18 @@ describe('harmonizr', function() {
             harmonize(src, expected, { style: 'revealing' });
         });
 
+        it('allows specifying modules as strings', function() {
+            var src      = 'module m1 {\n' +
+                           '    module a = \'m2\';\n' +
+                           '    import b from \'m3\';\n' +
+                           '}';
+            var expected = 'define([\'m2\', \'m3\'], function(m2, m3) {\n' +
+                           '    var a = m2;\n' +
+                           '    var b = m3.b;\n' +
+                           '});';
+            harmonize(src, expected, { style: 'amd' });
+        });
+
     });
 
     describe('shorthand properties', function() {
