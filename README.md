@@ -8,6 +8,7 @@ A "transpiler" that brings tomorrow's Harmony to today's JavaScript.
   - Shorthand properties
   - Method definitions
   - Arrow functions (requires `Function.prototype.bind`)
+  - Class declarations
   - Maintains line numbers
 
 ## Demo
