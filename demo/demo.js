@@ -9,9 +9,6 @@ require({
         codemirrorjavascript: 'lib/javascript'
     },
     shim: {
-        esprima: {
-            exports: 'esprima'
-        },
         codemirror: {
             exports: 'CodeMirror'
         },
@@ -20,11 +17,12 @@ require({
         }
     }
 }, [
+    'esprima',
     'harmonizr',
     'jquery',
     'codemirror',
     'codemirrorjavascript'
-], function(harmonizr, $, CodeMirror) {
+], function(esprima, harmonizr, $, CodeMirror) {
 
     $(function() {
         var editor = newCodeMirror($('#editor')[0], {
