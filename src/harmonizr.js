@@ -5,6 +5,7 @@ export function harmonize(src, options) {
     src = processShorthands(src, options);
     src = processMethods(src, options);
     src = processArrowFunctions(src, options);
+    src = processClasses(src, options);
     src = processDestructuringAssignments(src, options);
     src = processModules(src, options, moduleStyles[options.style]);
     return src;
@@ -234,6 +235,108 @@ function processArrowFunctions(src, options) {
         });
         return result;
     }
+}
+
+function processClasses(src, options) {
+    var ast = parse(src, { loc: true });
+    var lines = src.split('\n');
+
+    var classes = [];
+    traverse(ast, node => {
+        if (node.type === Syntax.ClassDeclaration) {
+            classes.push(node);
+        }
+    });
+
+    classes.forEach(node => {
+        var name = node.id.name;
+        var methods = [];
+        traverse(node, innerNode => {
+            if (innerNode.type === Syntax.MethodDefinition) {
+                methods.push(innerNode);
+            }/* FIXME: can classes be nested? else if (innerNode !== node && innerNode.type === Syntax.ClassDeclaration) {
+                return false;
+            }*/
+        });
+        methods.reverse();
+
+        var startLine = node.loc.start.line - 1;
+        var startCol = node.loc.start.column;
+        var bodyStartLine = node.body.loc.start.line - 1;
+        var bodyStartCol = node.body.loc.start.column;
+        var endLine = node.loc.end.line - 1;
+        var endCol = node.loc.end.column;
+
+        // Delete the trailing }
+        lines[endLine] = splice(
+            lines[endLine],
+            endCol - 1,
+            1,
+            '');
+
+        methods.forEach(method => {
+            var line = method.key.loc.start.line - 1;
+            var col = method.key.loc.start.column;
+            if (method.key.name === 'constructor') {
+                lines[line] = splice(
+                    lines[line],
+                    col,
+                    method.key.name.length,
+                    'function ' + name);
+            } else {
+                lines[line] = splice(
+                    lines[line],
+                    col,
+                    method.key.name.length,
+                    name + '.prototype.' + method.key.name + ' = function');
+            }
+            // TODO: get and set methods
+        });
+
+        // If we have a superclass, copy its code for later reuse
+        var superClass;
+        if (node.superClass) {
+            // FIXME: this can be an arbitrary expression spanning multiple lines
+            superClass = lines[node.superClass.loc.start.line - 1]
+                .substring(node.superClass.loc.start.column, node.superClass.loc.end.column);
+        }
+
+        // Delete the start of the ClassDeclaration
+        if (startLine === bodyStartLine) {
+            // Opening { is on the same line
+            lines[bodyStartLine] = splice(
+                lines[bodyStartLine],
+                startCol,
+                bodyStartCol - startCol + 1,
+                '');
+        }
+
+        // If we had a superclass, insert an Object.create in its place
+        if (node.superClass) {
+            // FIXME: superclass need not be a function with a .prototype property
+            lines[startLine] = splice(
+                lines[startLine],
+                startCol,
+                0,
+                node.id.name + '.prototype = Object.create(' + superClass + '.prototype);');
+        }
+
+        // TODO: calls to super.constructor() and the like
+
+        // In case we have no constructor, insert an empty function
+        var hasConstructor = methods.some(method => {
+            return method.key.name === 'constructor';
+        });
+        if (!hasConstructor) {
+            lines[startLine] = splice(
+                lines[startLine],
+                startCol,
+                0,
+                'function ' + node.id.name + '() {};');
+        }
+    });
+
+    return lines.join('\n');
 }
 
 function processDestructuringAssignments(src, options) {

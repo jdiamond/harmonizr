@@ -373,6 +373,45 @@ describe('harmonizr', function() {
 
     });
 
+    describe('classes', function() {
+
+        it('supports empty class definitions', function() {
+            var src      = 'class A {}';
+            var expected = 'function A() {};';
+            harmonize(src, expected);
+        });
+
+        it('supports constructors', function() {
+            var src      = 'class A {\n'+
+                           '  constructor(a) { this.a = a; }\n'+
+                           '}';
+            var expected = '\n  function A(a) { this.a = a; }\n';
+            harmonize(src, expected);
+        });
+
+        it('supports extending from other classes', function() {
+            var src      = 'class A extends B {\n' +
+                           '  constructor(a) { this.a = a; }\n'+
+                           '}';
+            var expected = 'A.prototype = Object.create(B.prototype);\n' +
+                           '  function A(a) { this.a = a; }\n';
+            harmonize(src, expected);
+        });
+
+        it('supports member functions', function() {
+            var src      = 'class A {a(a) {}; b() {}}';
+            var expected = 'function A() {};A.prototype.a = function(a) {}; A.prototype.b = function() {}';
+            harmonize(src, expected);
+        });
+
+        it('supports constructors and member functions', function() {
+            var src      = 'class A {constructor(a) { this.a = a; }; a(a) {}}';
+            var expected = 'function A(a) { this.a = a; }; A.prototype.a = function(a) {}';
+            harmonize(src, expected);
+        });
+
+    });
+
 });
 
 function harmonize(src, expected, options) {
