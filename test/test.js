@@ -377,7 +377,13 @@ describe('harmonizr', function() {
 
         it('supports empty class definitions', function() {
             var src      = 'class A {}';
-            var expected = 'function A() {};';
+            var expected = 'var A = (function () {function A() {};; return A;})();';
+            harmonize(src, expected);
+        });
+
+        it('supports opening { on newline', function() {
+            var src      = 'class A \n\n  {}';
+            var expected = 'var A = (function () \n\n  {function A() {};; return A;})();';
             harmonize(src, expected);
         });
 
@@ -385,7 +391,7 @@ describe('harmonizr', function() {
             var src      = 'class A {\n'+
                            '  constructor(a) { this.a = a; }\n'+
                            '}';
-            var expected = '\n  function A(a) { this.a = a; }\n';
+            var expected = 'var A = (function () {\n  function A(a) { this.a = a; }\n; return A;})();';
             harmonize(src, expected);
         });
 
@@ -393,20 +399,31 @@ describe('harmonizr', function() {
             var src      = 'class A extends B {\n' +
                            '  constructor(a) { this.a = a; }\n'+
                            '}';
-            var expected = 'A.prototype = Object.create(B.prototype);\n' +
-                           '  function A(a) { this.a = a; }\n';
+            var expected = 'var A = (function () {var A__super = B;A.prototype = Object.create(A__super.prototype); \n' +
+                           '  function A(a) { this.a = a; }\n; return A;})();';
+            harmonize(src, expected);
+        });
+
+        it('supports extending from an expression', function() {
+            var src      = 'class A extends (\n' +
+                           '  B && C\n' +
+                           ')\n\n {\n' +
+                           '  constructor(a) { this.a = a; }\n'+
+                           '}';
+            var expected = 'var A = (function () {var A__super = (\n  B && C\n);A.prototype = Object.create(A__super.prototype);\n\n \n' +
+                           '  function A(a) { this.a = a; }\n; return A;})();';
             harmonize(src, expected);
         });
 
         it('supports member functions', function() {
             var src      = 'class A {a(a) {}; b() {}}';
-            var expected = 'function A() {};A.prototype.a = function(a) {}; A.prototype.b = function() {}';
+            var expected = 'var A = (function () {function A() {};A.prototype.a = function(a) {}; A.prototype.b = function() {}; return A;})();';
             harmonize(src, expected);
         });
 
         it('supports constructors and member functions', function() {
             var src      = 'class A {constructor(a) { this.a = a; }; a(a) {}}';
-            var expected = 'function A(a) { this.a = a; }; A.prototype.a = function(a) {}';
+            var expected = 'var A = (function () {function A(a) { this.a = a; }; A.prototype.a = function(a) {}; return A;})();';
             harmonize(src, expected);
         });
 

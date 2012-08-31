@@ -267,12 +267,12 @@ function processClasses(src, options) {
         var endLine = node.loc.end.line - 1;
         var endCol = node.loc.end.column;
 
-        // Delete the trailing }
+        // Replace the trailing } with a return for the IIFE pattern
         lines[endLine] = splice(
             lines[endLine],
             endCol - 1,
             1,
-            '');
+            '; return ' + name + ';})();');
 
         methods.forEach(method => {
             var line = method.key.loc.start.line - 1;
@@ -293,50 +293,70 @@ function processClasses(src, options) {
             // TODO: get and set methods
         });
 
-        // If we have a superclass, copy its code for later reuse
-        var superClass;
-        if (node.superClass) {
-            // FIXME: this can be an arbitrary expression spanning multiple lines
-            superClass = lines[node.superClass.loc.start.line - 1]
-                .substring(node.superClass.loc.start.column, node.superClass.loc.end.column);
-        }
-
-        // Delete the start of the ClassDeclaration
-        if (startLine === bodyStartLine) {
-            // Opening { is on the same line
-            lines[bodyStartLine] = splice(
-                lines[bodyStartLine],
-                startCol,
-                bodyStartCol - startCol + 1,
-                '');
-        }
-
-        // If we had a superclass, insert an Object.create in its place
-        if (node.superClass) {
-            // FIXME: superclass need not be a function with a .prototype property
-            lines[startLine] = splice(
-                lines[startLine],
-                startCol,
-                0,
-                node.id.name + '.prototype = Object.create(' + superClass + '.prototype);');
-        }
-
-        // TODO: calls to super.constructor() and the like
-
         // In case we have no constructor, insert an empty function
         var hasConstructor = methods.some(method => {
             return method.key.name === 'constructor';
         });
         if (!hasConstructor) {
+            lines[bodyStartLine] = splice(
+                lines[bodyStartLine],
+                bodyStartCol + 1,
+                0,
+                'function ' + name + '() {};');
+        }
+
+        if (node.superClass) {
+            // remove opening {
+            lines[bodyStartLine] = splice(
+                lines[bodyStartLine],
+                bodyStartCol,
+                1,
+                '');
+
+            var superStartLine = node.superClass.loc.start.line - 1;
+            var superStartCol = node.superClass.loc.start.column;
+            var superEndLine = node.superClass.loc.end.line - 1;
+            var superEndCol = node.superClass.loc.end.column;
+            // Capture super expression in a variable
+            // and use an Object.create to create the prototype of the new class
+            // TODO: support expressions that do not evaluate to a Function
+            lines[superEndLine] = splice(
+                lines[superEndLine],
+                superEndCol,
+                0,
+                name + '.prototype = Object.create(' + name + '__super.prototype);');
+            lines[superEndLine] = splice(
+                lines[superEndLine],
+                superEndCol,
+                0,
+                ';');
+            lines[superStartLine] = splice(
+                lines[superStartLine],
+                superStartCol,
+                0,
+                'var ' + name + '__super = ');
+
+            // Replace start until the super class with IIFE pattern
             lines[startLine] = splice(
                 lines[startLine],
                 startCol,
-                0,
-                'function ' + node.id.name + '() {};');
+                superStartCol - startCol,
+                'var ' + name + ' = (function () {');
+        } else {
+            // Replace start of the ClassDeclaration with IIFE pattern
+            lines[startLine] = splice(
+                lines[startLine],
+                startCol,
+                bodyStartLine === startLine ?
+                    bodyStartCol - startCol :
+                    lines[startLine].length - startCol,
+                'var ' + name + ' = (function () ');
         }
     });
 
-    return lines.join('\n');
+    var res = lines.join('\n');
+
+    return res;
 }
 
 function processDestructuringAssignments(src, options) {
@@ -669,3 +689,4 @@ function detectIndent(mod, lines) {
     }
     return '';
 }
+/* vim: set sw=4 ts=4 et tw=80 : */
