@@ -278,12 +278,37 @@ function processClasses(src, options) {
             var line = method.key.loc.start.line - 1;
             var col = method.key.loc.start.column;
             if (method.key.name === 'constructor') {
+                // replace calls to `super(...)` with `X__super.call(this, ...)`
+                var superCalls = [];
+                traverse(method, innerNode => {
+                    if (innerNode.type === Syntax.CallExpression &&
+                        innerNode.callee.type === Syntax.Identifier &&
+                        innerNode.callee.name === 'super') {
+                        superCalls.push(innerNode);
+                    }/* FIXME: can classes be nested? else if (innerNode !== node && innerNode.type === Syntax.ClassDeclaration) {
+                        return false;
+                    }*/
+                });
+                superCalls.reverse();
+                superCalls.forEach(call => {
+                    var callStartLine = call.loc.start.line - 1;
+                    var callStartCol = call.loc.start.column;
+                    // FIXME: this only supports `super(` for now, no `super (`
+                    // or other combinations of whitespace between `super` and `(`
+                    lines[callStartLine] = splice(
+                        lines[callStartLine],
+                        callStartCol,
+                        'super('.length,
+                        name + '__super.call(this' + (call['arguments'/* thanks jshint*/].length ? ', ' : ''));
+                });
+
                 lines[line] = splice(
                     lines[line],
                     col,
                     method.key.name.length,
                     'function ' + name);
             } else {
+                // TODO: rewrite calls to `super.method(...)` to `X__proto.method.call(this, ...)`
                 lines[line] = splice(
                     lines[line],
                     col,
@@ -319,12 +344,13 @@ function processClasses(src, options) {
             var superEndCol = node.superClass.loc.end.column;
             // Capture super expression in a variable
             // and use an Object.create to create the prototype of the new class
-            // TODO: support expressions that do not evaluate to a Function
             lines[superEndLine] = splice(
                 lines[superEndLine],
                 superEndCol,
                 0,
-                name + '.prototype = Object.create(' + name + '__super.prototype);');
+                'var ' + name + '__prototype = (typeof ' + name + '__super !== "function" ? ' +
+                name + '__super : ' + name + '__super.prototype);' +
+                name + '.prototype = Object.create(' + name + '__prototype);');
             lines[superEndLine] = splice(
                 lines[superEndLine],
                 superEndCol,

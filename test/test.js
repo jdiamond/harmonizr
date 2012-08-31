@@ -399,8 +399,21 @@ describe('harmonizr', function() {
             var src      = 'class A extends B {\n' +
                            '  constructor(a) { this.a = a; }\n'+
                            '}';
-            var expected = 'var A = (function () {var A__super = B;A.prototype = Object.create(A__super.prototype); \n' +
+            var expected = 'var A = (function () {var A__super = B;' +
+                           'var A__prototype = (typeof A__super !== "function" ? A__super : A__super.prototype);' +
+                           'A.prototype = Object.create(A__prototype); \n' +
                            '  function A(a) { this.a = a; }\n; return A;})();';
+            harmonize(src, expected);
+        });
+
+        it('supports calls to super()', function() {
+            var src      = 'class A extends B {\n' +
+                           '  constructor(a) { super(); super(a); }\n'+
+                           '}';
+            var expected = 'var A = (function () {var A__super = B;' +
+                           'var A__prototype = (typeof A__super !== "function" ? A__super : A__super.prototype);' +
+                           'A.prototype = Object.create(A__prototype); \n' +
+                           '  function A(a) { A__super.call(this); A__super.call(this, a); }\n; return A;})();';
             harmonize(src, expected);
         });
 
@@ -408,9 +421,11 @@ describe('harmonizr', function() {
             var src      = 'class A extends (\n' +
                            '  B && C\n' +
                            ')\n\n {\n' +
-                           '  constructor(a) { this.a = a; }\n'+
+                           '  constructor(a) { this.a = a; }\n' +
                            '}';
-            var expected = 'var A = (function () {var A__super = (\n  B && C\n);A.prototype = Object.create(A__super.prototype);\n\n \n' +
+            var expected = 'var A = (function () {var A__super = (\n  B && C\n);' +
+                           'var A__prototype = (typeof A__super !== "function" ? A__super : A__super.prototype);' +
+                           'A.prototype = Object.create(A__prototype);\n\n \n' +
                            '  function A(a) { this.a = a; }\n; return A;})();';
             harmonize(src, expected);
         });
@@ -426,6 +441,8 @@ describe('harmonizr', function() {
             var expected = 'var A = (function () {function A(a) { this.a = a; }; A.prototype.a = function(a) {}; return A;})();';
             harmonize(src, expected);
         });
+
+        // TODO: nested classes
 
     });
 
@@ -448,3 +465,4 @@ function harmonize(src, expected, options) {
         actual.message.should.equal(expected.message);
     }
 }
+/* vim: set sw=4 ts=4 et tw=80 : */
