@@ -401,6 +401,12 @@ describe('harmonizr', function() {
             harmonize(src, expected);
         });
 
+        it('supports class expressions without an id', function() {
+            var src      = 'var B = class {};';
+            var expected = 'var B = (function () {function __klass() {};; return __klass;})();';
+            harmonize(src, expected);
+        });
+
         it('supports wrapped class expressions', function() {
             var src      = 'var B = (class A {});';
             var expected = 'var B = (function () {function A() {};; return A;})();';

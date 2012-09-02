@@ -272,7 +272,7 @@ function processClasses(modifier, options) {
     });
 
     classes.forEach(node => {
-        var name = node.id.name;
+        var name = node.id && node.id.name || '__klass';
         var methods = [];
         traverse(node, innerNode => {
             if (innerNode.type === Syntax.MethodDefinition) {
