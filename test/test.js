@@ -491,6 +491,15 @@ describe('harmonizr', function() {
             harmonize(src, expected);
         });
 
+        it('supports getter and setter members', function() {
+            var src      = 'class A {set a(a) {}; get b() {return b;}}';
+            var expected = 'var A = (function () {function A() {};' +
+                           'var __old_a = Object.getOwnPropertyDescriptor(A.prototype, "a"); Object.defineProperty(A.prototype, "a", {configurable: true, get: __old_a && __old_a.get, set: function(a) {}}); ' +
+                           'var __old_b = Object.getOwnPropertyDescriptor(A.prototype, "b"); Object.defineProperty(A.prototype, "b", {configurable: true, set: __old_b && __old_b.set, get: function() {return b;}})'+
+                           '; return A;})();';
+            harmonize(src, expected);
+        });
+
         it('supports constructors and member functions', function() {
             var src      = 'class A {constructor(a) { this.a = a; }; a(a) {}}';
             var expected = 'var A = (function () {function A(a) { this.a = a; }; A.prototype.a = function(a) {}; return A;})();';

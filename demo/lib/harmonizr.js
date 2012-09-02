@@ -375,10 +375,24 @@ function processClasses(modifier, options) {
             modifier.replace(method.key.loc.start, method.key.loc.end,
                 'function ' + name);
         } else {
-            modifier.replace(method.key.loc.start, method.key.loc.end,
-                name + '.prototype.' + method.key.name + ' = function');
+            var prop = method.key.name;
+            if (method.kind) {
+                var otherkind = method.kind === 'set' ? 'get' : 'set';
+                var protoprop = name + '.prototype, "' + prop + '"';
+                modifier.insert(method.loc.end,
+                    '})');
+                modifier.replace(method.loc.start, method.key.loc.end,
+                    'var __old_' + prop + ' = ' +
+                    'Object.getOwnPropertyDescriptor(' + protoprop + '); ' +
+                    'Object.defineProperty(' + protoprop + ', ' +
+                    '{configurable: true, ' + otherkind + ': __old_' + prop +
+                    ' && __old_' + prop + '.' + otherkind + ', ' +
+                    method.kind + ': function');
+            } else {
+                modifier.replace(method.key.loc.start, method.key.loc.end,
+                    name + '.prototype.' + prop + ' = function');
+            }
         }
-        // TODO: get and set methods
     }
 
     function hasConstructor() {
