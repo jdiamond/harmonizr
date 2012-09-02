@@ -1,3 +1,4 @@
+var modifier = this.modifier || require('../lib/modifier');
 var harmonizr = this.harmonizr || require('../lib/harmonizr');
 
 describe('harmonizr', function() {
@@ -452,6 +453,98 @@ describe('harmonizr', function() {
 
     });
 
+});
+
+describe('modifier', function () {
+    var Modifier = modifier.Modifier;
+
+    it('should provide the finished source on `finish`', function () {
+        var expected = 'var a = 10;';
+        var m = new Modifier(expected);
+        var actual = m.finish();
+        actual.should.equal(expected);
+    });
+
+    it('should parse the source into an ast', function () {
+        var expected = 'var a = 10;';
+        var m = new Modifier(expected);
+        m.ast.type.should.equal('Program');
+    });
+
+    it('should provide `lines` for manual access', function () {
+        var expected = 'var a = 10;';
+        var m = new Modifier(expected);
+        m.lines[0].should.equal(expected);
+    });
+
+    it('should support `remove` using two loc objects', function () {
+        var src      = 'var a = 10;';
+        var expected = 'var a = ;';
+        var m = new Modifier(src);
+        var literal = m.ast.body[0].declarations[0].init;
+        m.remove(literal.loc.start, literal.loc.end);
+        var actual = m.finish();
+        actual.should.equal(expected);
+    });
+
+    it('should support `remove` spanning multiple lines', function () {
+        var src      = 'var a = function (a) {\n  return a;\n};';
+        var expected = 'var a = \n\n;';
+        var m = new Modifier(src);
+        var fn = m.ast.body[0].declarations[0].init;
+        m.remove(fn.loc.start, fn.loc.end);
+        var actual = m.finish();
+        actual.should.equal(expected);
+    });
+
+    it('should support `remove` using one loc object and an offset', function () {
+        var src      = 'var a = 10;';
+        var expected = 'var a = ;';
+        var m = new Modifier(src);
+        var literal = m.ast.body[0].declarations[0].init;
+        m.remove(literal.loc.start, 2);
+        var actual = m.finish();
+        actual.should.equal(expected);
+    });
+
+    it('should support `insert`', function () {
+        var src      = 'var a = 4;';
+        var expected = 'var a = 42;';
+        var m = new Modifier(src);
+        var literal = m.ast.body[0].declarations[0].init;
+        m.insert(literal.loc.end, '2');
+        var actual = m.finish();
+        actual.should.equal(expected);
+    });
+
+    it('should support `replace`', function () {
+        var src      = 'var a = 10;';
+        var expected = 'var a = 42;';
+        var m = new Modifier(src);
+        var literal = m.ast.body[0].declarations[0].init;
+        m.replace(literal.loc.start, literal.loc.end, '42');
+        var actual = m.finish();
+        actual.should.equal(expected);
+    });
+
+    it('should support `replace` with an offset', function () {
+        var src      = 'var a = 10;';
+        var expected = 'var a = 42;';
+        var m = new Modifier(src);
+        var literal = m.ast.body[0].declarations[0].init;
+        m.replace(literal.loc.start, 2, '42');
+        var actual = m.finish();
+        actual.should.equal(expected);
+    });
+
+    it('should support `refresh`', function () {
+        var src      = 'var a = 10;';
+        var m = new Modifier(src);
+        var literal = m.ast.body[0].declarations[0].init;
+        m.replace(literal.loc.start, literal.loc.end, '42');
+        m.refresh();
+        m.ast.body[0].declarations[0].init.value.should.equal(42);
+    });
 });
 
 function harmonize(src, expected, options) {

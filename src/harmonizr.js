@@ -1,4 +1,7 @@
 import { parse, Syntax } from esprima;
+import { Modifier } from modifier;
+
+export var Modifier = Modifier;
 
 export function harmonize(src, options) {
     options = options || {};

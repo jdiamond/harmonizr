@@ -1,4 +1,7 @@
 var harmonizr = function() {var parse = esprima.parse, Syntax = esprima.Syntax;
+var Modifier = modifier.Modifier;
+
+var Modifier = Modifier;
 
 function harmonize(src, options) {
     options = options || {};
@@ -719,6 +722,7 @@ function detectIndent(mod, lines) {
 
 
 return {
+    Modifier: Modifier,
     harmonize: harmonize,
     moduleStyles: moduleStyles
 };

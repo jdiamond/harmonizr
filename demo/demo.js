@@ -3,6 +3,7 @@
 require({
     paths: {
         harmonizr: 'lib/harmonizr',
+        modifier: 'lib/modifier',
         esprima: '../lib/esprima',
         jquery: 'lib/jquery-1.7.2',
         codemirror: 'lib/codemirror',
