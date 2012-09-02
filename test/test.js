@@ -401,15 +401,27 @@ describe('harmonizr', function() {
             harmonize(src, expected);
         });
 
-        it.skip('supports wrapped class expressions', function() {
+        it('supports wrapped class expressions', function() {
             var src      = 'var B = (class A {});';
-            var expected = 'var B = ((function () {function A() {};; return A;})());';
+            var expected = 'var B = (function () {function A() {};; return A;})();';
+            harmonize(src, expected);
+        });
+
+        it('supports wrapped class expressions with whitespaces', function() {
+            var src      = 'var B = (\n  \nclass A {}\n);';
+            var expected = 'var B = \n\n(function () {function A() {};\n; return A;})();';
+            harmonize(src, expected);
+        });
+
+        it('supports class expressions in more parentheses', function() {
+            var src      = 'var B = (\n(\n(\n  \nclass A {}\n)\n)\n);';
+            var expected = 'var B = \n\n\n\n(function () {function A() {};\n\n\n; return A;})();';
             harmonize(src, expected);
         });
 
         it('supports opening { on newline', function() {
             var src      = 'class A \n\n  {}';
-            var expected = 'var A = (function () \n\n  {function A() {};; return A;})();';
+            var expected = '\n\nvar A = (function () {function A() {};; return A;})();';
             harmonize(src, expected);
         });
 
@@ -539,6 +551,16 @@ describe('modifier', function () {
     it('should support `replace`', function () {
         var src      = 'var a = 10;';
         var expected = 'var a = 42;';
+        var m = new Modifier(src);
+        var literal = m.ast.body[0].declarations[0].init;
+        m.replace(literal.loc.start, literal.loc.end, '42');
+        var actual = m.finish();
+        actual.should.equal(expected);
+    });
+
+    it('should support `replace` with newlines', function () {
+        var src      = 'var a = (\n\n42);';
+        var expected = 'var a = \n\n42;';
         var m = new Modifier(src);
         var literal = m.ast.body[0].declarations[0].init;
         m.replace(literal.loc.start, literal.loc.end, '42');
