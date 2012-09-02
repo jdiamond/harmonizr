@@ -70,6 +70,39 @@ module myModule {
         concise(arg1, arg2) arg1 + arg2
     };
 
+    // Class declarations
+    class A {
+        // constructors
+        constructor(a) {
+            this.a = a;
+        }
+        method() {
+            return this.a;
+        }
+        // getters and setters
+        set a(a) {
+            this._a = a;
+        }
+        get a() {
+            return this._a;
+        }
+        b() {
+            // anonymous class expressions
+            // and inheritance
+            return class extends A {
+                constructor() {
+                    super('a');
+                }
+                method() {
+                    return 'hi ' + super.method();
+                }
+            }
+        }
+    }
+    var a = new A;
+    var b = new (a.b());
+    b.method();
+
 }
         </script>
 
