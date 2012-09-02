@@ -294,10 +294,6 @@ function processClasses(modifier, options) {
             // remove opening {
             modifier.remove(node.body.loc.start, 1);
 
-            var superStartLine = node.superClass.loc.start.line - 1;
-            var superStartCol = node.superClass.loc.start.column;
-            var superEndLine = node.superClass.loc.end.line - 1;
-            var superEndCol = node.superClass.loc.end.column;
             // Capture super expression in a variable
             // and use an Object.create to create the prototype of the new class
             modifier.insert(node.superClass.loc.end,
