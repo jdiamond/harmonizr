@@ -497,7 +497,18 @@ describe('harmonizr', function() {
             harmonize(src, expected);
         });
 
-        // TODO: nested classes
+        it('supports nested classes', function() {
+            var src      = 'class A {a() { return (class extends A {constructor() { super(); } method() { return super.method(); }}); } }';
+            var expected = 'var A = (function () {function A() {};A.prototype.a = function() { return ' +
+                           '(function () {var __klass__super = A;' +
+                           'var __klass__prototype = (typeof __klass__super !== "function" ? __klass__super : __klass__super.prototype);' +
+                           '__klass.prototype = Object.create(__klass__prototype); ' +
+                           'function __klass() { __klass__super.bind(this)(); } '+
+                           '__klass.prototype.method = function() { return __klass__prototype.method.bind(this)(); }; return __klass;})()' +
+                           '; } ; return A;})();';
+            harmonize(src, expected);
+        });
+
 
     });
 
