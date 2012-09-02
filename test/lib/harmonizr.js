@@ -288,33 +288,39 @@ function processClasses(modifier, options) {
             '; return ' + name + ';})()' + (node.type === Syntax.ClassDeclaration ? ';' : ''));
 
         methods.forEach(function(method) {
+            var supers = [];
+            // collect all `super` Identifiers of calls and `super.X` MemberExpressions
+            traverse(method, function(innerNode) {
+                if ((innerNode.type === Syntax.CallExpression &&
+                     innerNode.callee.type === Syntax.Identifier &&
+                     innerNode.callee.name === 'super') ||
+                    (innerNode.type === Syntax.MemberExpression &&
+                     innerNode.object.type === Syntax.Identifier &&
+                     innerNode.object.name === 'super')) {
+                    supers.push(innerNode);
+                }/* FIXME: can classes be nested? else if (innerNode !== node && innerNode.type === Syntax.ClassDeclaration) {
+                    return false;
+                }*/
+            });
+            supers.reverse();
+            supers.forEach(function(superItem) {
+                if (superItem.type === Syntax.CallExpression) {
+                    // super(X) -> X__super.bind(this)(X)
+                    modifier.replace(superItem.callee.loc.start, superItem.callee.loc.end,
+                        name + '__super.bind(this)');
+                } else {
+                    // super.method -> X__prototype.method.bind(this)
+                    modifier.insert(superItem.property.loc.end,
+                        '.bind(this)');
+                    modifier.replace(superItem.object.loc.start, superItem.object.loc.end,
+                        name + '__prototype');
+                }
+            });
+            
             if (method.key.name === 'constructor') {
-                // replace calls to `super(...)` with `X__super.call(this, ...)`
-                var superCalls = [];
-                traverse(method, function(innerNode) {
-                    if (innerNode.type === Syntax.CallExpression &&
-                        innerNode.callee.type === Syntax.Identifier &&
-                        innerNode.callee.name === 'super') {
-                        superCalls.push(innerNode);
-                    }/* FIXME: can classes be nested? else if (innerNode !== node && innerNode.type === Syntax.ClassDeclaration) {
-                        return false;
-                    }*/
-                });
-                superCalls.reverse();
-                superCalls.forEach(function(call) {
-                    if (call['arguments'].length) {
-                        modifier.replace(call.loc.start, call['arguments'][0].loc.start,
-                            name + '__super.call(this, ');
-                    } else {
-                        modifier.replace(call.loc.start, call.loc.end,
-                            name + '__super.call(this)');
-                    }
-                });
-
                 modifier.replace(method.key.loc.start, method.key.loc.end,
                     'function ' + name);
             } else {
-                // TODO: rewrite calls to `super.method(...)` to `X__proto.method.call(this, ...)`
                 modifier.replace(method.key.loc.start, method.key.loc.end,
                     name + '.prototype.' + method.key.name + ' = function');
             }

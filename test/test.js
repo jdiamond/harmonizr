@@ -457,7 +457,18 @@ describe('harmonizr', function() {
             var expected = 'var A = (function () {var A__super = B;' +
                            'var A__prototype = (typeof A__super !== "function" ? A__super : A__super.prototype);' +
                            'A.prototype = Object.create(A__prototype); \n' +
-                           '  function A(a) { \n\nA__super.call(this); \n\nA__super.call(this, a); }\n; return A;})();';
+                           '  function A(a) { A__super.bind(this)\n(\n); A__super.bind(this)\n  (\na); }\n; return A;})();';
+            harmonize(src, expected);
+        });
+
+        it('supports calls to super.method()', function() {
+            var src      = 'class A extends B {\n' +
+                           '  constructor() { (\nsuper.method\n).call(); return super.method; }\n'+
+                           '}';
+            var expected = 'var A = (function () {var A__super = B;' +
+                           'var A__prototype = (typeof A__super !== "function" ? A__super : A__super.prototype);' +
+                           'A.prototype = Object.create(A__prototype); \n' +
+                           '  function A() { (\nA__prototype.method.bind(this)\n).call(); return A__prototype.method.bind(this); }\n; return A;})();';
             harmonize(src, expected);
         });
 
