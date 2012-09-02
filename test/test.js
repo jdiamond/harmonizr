@@ -3,6 +3,19 @@ var harmonizr = this.harmonizr || require('../lib/harmonizr');
 
 describe('harmonizr', function() {
 
+    it('should say in which pipeline an error happened', function () {
+        // TODO: actually fix this case...
+        var src      = 'a';
+        var expected = '';
+        try {
+            harmonize(src, expected, {fail: true});
+        } catch (e) {
+            e.message.should.equal('Stage `fail` created unparsable code: Line 1: Unexpected token }');
+            e.actual.should.equal('a');
+            e.expected.should.equal('}a');
+        }
+    });
+
     describe('modules, imports, and exports', function() {
 
         it('turns module declarations into AMD modules', function() {
@@ -385,6 +398,12 @@ describe('harmonizr', function() {
         it('supports class expressions', function() {
             var src      = 'var B = class A {};';
             var expected = 'var B = (function () {function A() {};; return A;})();';
+            harmonize(src, expected);
+        });
+
+        it.skip('supports wrapped class expressions', function() {
+            var src      = 'var B = (class A {});';
+            var expected = 'var B = ((function () {function A() {};; return A;})());';
             harmonize(src, expected);
         });
 

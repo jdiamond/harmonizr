@@ -6,17 +6,37 @@ var Modifier = Modifier;
 function harmonize(src, options) {
     options = options || {};
     var modifier = new Modifier(src);
-    processShorthands(modifier, options);
-    modifier.refresh();
-    processMethods(modifier, options);
-    modifier.refresh();
-    processArrowFunctions(modifier, options);
-    modifier.refresh();
-    processClasses(modifier, options);
-    modifier.refresh();
-    processDestructuringAssignments(modifier, options);
-    modifier.refresh();
-    processModules(modifier, options, moduleStyles[options.style]);
+    var stages = [
+        {name: 'shorthand properties', fn: processShorthands},
+        {name: 'shorthand methods', fn: processMethods},
+        {name: 'arrow functions', fn: processArrowFunctions},
+        {name: 'classes', fn: processClasses},
+        {name: 'destructuring assignment', fn: processDestructuringAssignments},
+        {name: 'modules', fn: processModules}
+    ];
+    // just a bogus fail stage to get 100% test coverage
+    if (options.fail) {
+        stages.unshift({name: 'fail', fn: function(modifier) {
+            modifier.insert({line: 1, column: 0}, '}');
+        }});
+    }
+    var before;
+    for (var i = 0; i < stages.length; i++) {
+        if (i) {
+            try {
+                modifier.refresh();
+            } catch (e) {
+                var err = new Error('Stage `' + stages[i - 1].name + '` created unparsable code: ' + e.message);
+                // populate `actual` and `expected` so mocha shows us a diff
+                err.actual = before;
+                err.expected = modifier.finish();
+                throw err;
+            }
+        }
+        var stage = stages[i];
+        before = modifier.finish();
+        stage.fn(modifier, options, moduleStyles[options.style]);
+    }
     return modifier.finish();
 }
 
