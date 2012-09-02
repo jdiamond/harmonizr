@@ -381,6 +381,12 @@ describe('harmonizr', function() {
             harmonize(src, expected);
         });
 
+        it('supports class expressions', function() {
+            var src      = 'var B = class A {};';
+            var expected = 'var B = (function () {function A() {};; return A;})();';
+            harmonize(src, expected);
+        });
+
         it('supports opening { on newline', function() {
             var src      = 'class A \n\n  {}';
             var expected = 'var A = (function () \n\n  {function A() {};; return A;})();';
