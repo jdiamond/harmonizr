@@ -283,20 +283,11 @@ function processClasses(modifier, options) {
         });
         methods.reverse();
 
-        var startLine = node.loc.start.line - 1;
-        var startCol = node.loc.start.column;
-        var bodyStartLine = node.body.loc.start.line - 1;
-        var bodyStartCol = node.body.loc.start.column;
-        var endLine = node.loc.end.line - 1;
-        var endCol = node.loc.end.column;
-
         // Replace the trailing } with a return for the IIFE pattern
         modifier.replace({line: node.body.loc.end.line, column: node.body.loc.end.column - 1}, node.loc.end,
             '; return ' + name + ';})()' + (node.type === Syntax.ClassDeclaration ? ';' : ''));
 
         methods.forEach(method => {
-            var line = method.key.loc.start.line - 1;
-            var col = method.key.loc.start.column;
             if (method.key.name === 'constructor') {
                 // replace calls to `super(...)` with `X__super.call(this, ...)`
                 var superCalls = [];
@@ -311,28 +302,20 @@ function processClasses(modifier, options) {
                 });
                 superCalls.reverse();
                 superCalls.forEach(call => {
-                    var callStartLine = call.loc.start.line - 1;
-                    var callStartCol = call.loc.start.column;
-                    // FIXME: this only supports `super(` for now, no `super (`
-                    // or other combinations of whitespace between `super` and `(`
-                    lines[callStartLine] = splice(
-                        lines[callStartLine],
-                        callStartCol,
-                        'super('.length,
-                        name + '__super.call(this' + (call['arguments'/* thanks jshint*/].length ? ', ' : ''));
+                    if (call['arguments'].length) {
+                        modifier.replace(call.loc.start, call['arguments'][0].loc.start,
+                            name + '__super.call(this, ');
+                    } else {
+                        modifier.replace(call.loc.start, call.loc.end,
+                            name + '__super.call(this)');
+                    }
                 });
 
-                lines[line] = splice(
-                    lines[line],
-                    col,
-                    method.key.name.length,
+                modifier.replace(method.key.loc.start, method.key.loc.end,
                     'function ' + name);
             } else {
                 // TODO: rewrite calls to `super.method(...)` to `X__proto.method.call(this, ...)`
-                lines[line] = splice(
-                    lines[line],
-                    col,
-                    method.key.name.length,
+                modifier.replace(method.key.loc.start, method.key.loc.end,
                     name + '.prototype.' + method.key.name + ' = function');
             }
             // TODO: get and set methods
@@ -343,20 +326,13 @@ function processClasses(modifier, options) {
             return method.key.name === 'constructor';
         });
         if (!hasConstructor) {
-            lines[bodyStartLine] = splice(
-                lines[bodyStartLine],
-                bodyStartCol + 1,
-                0,
+            modifier.insert({line: node.body.loc.start.line, column: node.body.loc.start.column + 1},
                 'function ' + name + '() {};');
         }
 
         if (node.superClass) {
             // remove opening {
-            lines[bodyStartLine] = splice(
-                lines[bodyStartLine],
-                bodyStartCol,
-                1,
-                '');
+            modifier.remove(node.body.loc.start, 1);
 
             var superStartLine = node.superClass.loc.start.line - 1;
             var superStartCol = node.superClass.loc.start.column;
@@ -364,29 +340,17 @@ function processClasses(modifier, options) {
             var superEndCol = node.superClass.loc.end.column;
             // Capture super expression in a variable
             // and use an Object.create to create the prototype of the new class
-            lines[superEndLine] = splice(
-                lines[superEndLine],
-                superEndCol,
-                0,
+            modifier.insert(node.superClass.loc.end,
                 'var ' + name + '__prototype = (typeof ' + name + '__super !== "function" ? ' +
                 name + '__super : ' + name + '__super.prototype);' +
                 name + '.prototype = Object.create(' + name + '__prototype);');
-            lines[superEndLine] = splice(
-                lines[superEndLine],
-                superEndCol,
-                0,
+            modifier.insert(node.superClass.loc.end,
                 ';');
-            lines[superStartLine] = splice(
-                lines[superStartLine],
-                superStartCol,
-                0,
+            modifier.insert(node.superClass.loc.start,
                 'var ' + name + '__super = ');
 
             // Replace start until the super class with IIFE pattern
-            lines[startLine] = splice(
-                lines[startLine],
-                startCol,
-                superStartCol - startCol,
+            modifier.replace(node.loc.start, node.superClass.loc.start,
                 'var ' + name + ' = (function () {');
         } else {
             // Replace start of the ClassDeclaration with IIFE pattern

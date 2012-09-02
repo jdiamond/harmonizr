@@ -446,22 +446,22 @@ describe('harmonizr', function() {
 
         it('supports calls to super()', function() {
             var src      = 'class A extends B {\n' +
-                           '  constructor(a) { super(); super(a); }\n'+
+                           '  constructor(a) { super\n(\n); super\n  (\na); }\n'+
                            '}';
             var expected = 'var A = (function () {var A__super = B;' +
                            'var A__prototype = (typeof A__super !== "function" ? A__super : A__super.prototype);' +
                            'A.prototype = Object.create(A__prototype); \n' +
-                           '  function A(a) { A__super.call(this); A__super.call(this, a); }\n; return A;})();';
+                           '  function A(a) { \n\nA__super.call(this); \n\nA__super.call(this, a); }\n; return A;})();';
             harmonize(src, expected);
         });
 
         it('supports extending from an expression', function() {
-            var src      = 'class A extends (\n' +
+            var src      = 'class A extends\n (\n' +
                            '  B && C\n' +
                            ')\n\n {\n' +
                            '  constructor(a) { this.a = a; }\n' +
                            '}';
-            var expected = 'var A = (function () {var A__super = (\n  B && C\n);' +
+            var expected = '\nvar A = (function () {var A__super = (\n  B && C\n);' +
                            'var A__prototype = (typeof A__super !== "function" ? A__super : A__super.prototype);' +
                            'A.prototype = Object.create(A__prototype);\n\n \n' +
                            '  function A(a) { this.a = a; }\n; return A;})();';
