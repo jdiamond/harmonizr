@@ -2,6 +2,9 @@
 
 A "transpiler" that brings tomorrow's Harmony to today's JavaScript.
 
+Note: I don't plan on working on this code any more.
+See [Six](http://sixlang.org/) for a more active project. Thanks.
+
 ## Features:
 
   - Harmony modules to AMD, Node.js, or Revealing Module Pattern
