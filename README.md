@@ -3,7 +3,7 @@
 A "transpiler" that brings tomorrow's Harmony to today's JavaScript.
 
 Note: I don't plan on working on this code any more.
-See [Six](http://sixlang.org/) for a more active project. Thanks.
+See [Traceur](https://github.com/google/traceur-compiler) for a more active project. Thanks.
 
 ## Features:
 
